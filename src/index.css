@@ -1,0 +1,56 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@300;400;700;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans text-gray-900 bg-gray-50;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif text-gray-900;
+  }
+}
+
+@layer components {
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400;
+  }
+
+  /* Markdown Styles */
+  .prose h1, .prose h2, .prose h3 {
+    @apply font-serif mt-4 mb-2;
+    color: theme('colors.soviet-red.800');
+  }
+  .prose p {
+    @apply mb-2 leading-relaxed;
+  }
+  .prose ul {
+    @apply list-disc list-outside ml-5 mb-2;
+  }
+  .prose ol {
+    @apply list-decimal list-outside ml-5 mb-2;
+  }
+  .prose blockquote {
+    @apply border-l-4 pl-4 italic text-gray-600 my-4 bg-gray-50 py-2 pr-2 rounded-r;
+    border-color: theme('colors.soviet-gold.500');
+  }
+  .prose strong {
+    @apply font-bold text-gray-800;
+  }
+}

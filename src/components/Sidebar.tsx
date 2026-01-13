@@ -1,0 +1,147 @@
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/store/authStore';
+import { MessageSquare, User, BarChart2, LogOut, Plus, BookOpen, Library, BrainCircuit, Trash2, Award } from 'lucide-react';
+import { clsx } from 'clsx';
+import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import api from '@/lib/api';
+import toast from 'react-hot-toast';
+
+export default function Sidebar() {
+  const { user, logout } = useAuthStore();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [recentChats, setRecentChats] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchRecentChats = async () => {
+        try {
+            const res = await api.get('/chat/history/recent');
+            setRecentChats(res.data);
+        } catch (e) {
+            console.error("Failed to load history", e);
+        }
+    };
+    if (user) {
+        fetchRecentChats();
+    }
+  }, [user, location.pathname]); // Refresh when path changes (new chat might be created)
+
+  const navItems = [
+    { href: '/', label: 'Hỏi đáp Triết học', icon: MessageSquare },
+    { href: '/library', label: 'Thư viện Triết học', icon: Library },
+    { href: '/quiz', label: 'Trắc nghiệm', icon: BrainCircuit },
+    { href: '/statistics', label: 'Thống kê học tập', icon: BarChart2 },
+    { href: '/profile', label: 'Hồ sơ cá nhân', icon: User },
+  ];
+
+  return (
+    <div className="flex flex-col h-full w-72 bg-white border-r border-gray-200 shadow-lg z-10 font-sans">
+      {/* Header */}
+      <div className="p-6 border-b border-gray-100 bg-soviet-red-700">
+        <div className="flex items-center space-x-3 text-white">
+          <div className="p-2 bg-soviet-gold-500 rounded-lg shadow-md">
+            <BookOpen className="h-6 w-6 text-white" />
+          </div>
+          <div>
+             <h1 className="font-serif font-bold text-lg leading-tight">Triết học M-L</h1>
+             <p className="text-xs text-soviet-red-100 opacity-80">Trợ lý học tập AI</p>
+          </div>
+        </div>
+      </div>
+
+      {/* New Chat Button */}
+      <div className="p-4">
+          <Link to="/" className="block">
+            <button className="w-full flex items-center justify-center px-4 py-3 border border-soviet-red-200 rounded-xl shadow-sm text-sm font-medium text-soviet-red-700 bg-soviet-red-50 hover:bg-soviet-red-100 hover:border-soviet-red-300 transition-all duration-200 group">
+            <Plus className="mr-2 h-5 w-5 text-soviet-red-600 group-hover:scale-110 transition-transform" />
+            Cuộc hội thoại mới
+            </button>
+          </Link>
+      </div>
+
+      {/* Navigation */}
+      <div className="flex-1 overflow-y-auto px-3 py-2 space-y-1 custom-scrollbar">
+        <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-2">Menu</p>
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = location.pathname === item.href;
+          return (
+            <Link
+              key={item.href}
+              to={item.href}
+              className={clsx(
+                'flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 group',
+                isActive
+                  ? 'bg-soviet-red-50 text-soviet-red-800 shadow-sm'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 hover:pl-4'
+              )}
+            >
+              <Icon
+                className={clsx(
+                  'mr-3 h-5 w-5 flex-shrink-0 transition-colors',
+                  isActive ? 'text-soviet-red-600' : 'text-gray-400 group-hover:text-soviet-red-500'
+                )}
+              />
+              {item.label}
+            </Link>
+          );
+        })}
+        
+        {/* History */}
+        <div className="mt-8">
+             <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Lịch sử gần đây</p>
+             <div className="space-y-1">
+                {recentChats.length === 0 ? (
+                    <div className="px-3 py-2 text-sm text-gray-400 italic">
+                        Chưa có lịch sử...
+                    </div>
+                ) : (
+                    recentChats.map((chat) => (
+                        <Link
+                            key={chat.id}
+                            to={`/chat/${chat.id}`}
+                            className={clsx(
+                                "block px-3 py-2 text-sm rounded-lg truncate transition-colors",
+                                location.pathname === `/chat/${chat.id}`
+                                    ? "bg-gray-100 text-gray-900 font-medium"
+                                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                            )}
+                            title={chat.title}
+                        >
+                            {chat.title || "Cuộc hội thoại mới"}
+                        </Link>
+                    ))
+                )}
+             </div>
+        </div>
+      </div>
+
+      {/* User Profile Footer */}
+      <div className="p-4 border-t border-gray-100 bg-gray-50">
+        <div className="flex items-center">
+          <div className="h-10 w-10 rounded-full bg-soviet-red-100 border-2 border-white shadow-sm overflow-hidden flex-shrink-0">
+             {user?.avatar_url ? (
+                <img src={user.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
+             ) : (
+                <div className="h-full w-full flex items-center justify-center text-soviet-red-700 font-bold">
+                    {user?.name?.charAt(0).toUpperCase()}
+                </div>
+             )}
+          </div>
+          <div className="ml-3 flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-900 truncate font-serif">{user?.name}</p>
+            <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+          </div>
+          <button
+            onClick={logout}
+            className="p-2 text-gray-400 hover:text-soviet-red-600 transition-colors rounded-full hover:bg-white hover:shadow-sm"
+            title="Đăng xuất"
+          >
+            <LogOut className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

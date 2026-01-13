@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Send, Sparkles, BookOpen, Star, User, RefreshCw, Feather, PenTool, MessageCircle } from 'lucide-react';
 import api from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
 import { clsx } from 'clsx';
 import ReactMarkdown from 'react-markdown';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -27,6 +28,7 @@ const SUGGESTED_QUESTIONS = [
 ];
 
 export default function Chat() {
+  const { user } = useAuthStore();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -157,7 +159,7 @@ export default function Chat() {
         </AnimatePresence>
 
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 scroll-smooth custom-scrollbar w-full max-w-6xl mx-auto">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 scroll-smooth custom-scrollbar w-full px-4 md:px-12 lg:px-20 mx-auto">
           {messages.length === 0 ? (
             <motion.div 
                 initial={{ opacity: 0, y: 20 }}
@@ -245,8 +247,12 @@ export default function Chat() {
                 {/* Avatar for User */}
                 {msg.role === 'user' && (
                     <div className="flex-shrink-0 mt-1">
-                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center border-2 border-white shadow-sm">
-                            <User className="h-5 w-5 text-gray-500" />
+                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center border-2 border-white shadow-sm overflow-hidden">
+                            {user?.avatar_url ? (
+                                <img src={user.avatar_url} alt="User" className="h-full w-full object-cover" />
+                            ) : (
+                                <User className="h-5 w-5 text-gray-500" />
+                            )}
                         </div>
                     </div>
                 )}
@@ -283,7 +289,7 @@ export default function Chat() {
         </div>
 
         {/* Input Area */}
-        <div className="p-4 md:p-6 bg-gradient-to-t from-white via-white to-transparent space-y-4 max-w-5xl mx-auto w-full">
+        <div className="p-4 md:p-6 bg-gradient-to-t from-white via-white to-transparent space-y-4 w-full px-4 md:px-12 lg:px-20 mx-auto">
           
           {/* Modes Selection */}
           <div className="flex justify-between items-center">
@@ -320,6 +326,9 @@ export default function Chat() {
           <form onSubmit={handleSubmit} className="relative group">
             <input
               type="text"
+              name="chat-input"
+              id="chat-input"
+              autoComplete="off"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Hỏi về triết học Mác - Lênin..."

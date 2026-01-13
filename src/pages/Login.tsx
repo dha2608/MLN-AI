@@ -15,7 +15,9 @@ export default function Login() {
       toast.success('Đăng nhập thành công');
       navigate('/');
     } catch (error: any) {
-      toast.error(error.response?.data?.detail || 'Đăng nhập thất bại');
+      const errorMsg = error.response?.data?.detail;
+      const displayMsg = typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : (errorMsg || 'Đăng nhập thất bại');
+      toast.error(displayMsg);
     }
   };
 
@@ -47,6 +49,7 @@ export default function Login() {
                     <input
                       id="email"
                       type="email"
+                      autoComplete="username"
                       required
                       {...register('email')}
                       className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-soviet-red-500 focus:border-soviet-red-500 sm:text-sm transition-shadow"
@@ -63,6 +66,7 @@ export default function Login() {
                     <input
                       id="password"
                       type="password"
+                      autoComplete="current-password"
                       required
                       {...register('password')}
                       className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-soviet-red-500 focus:border-soviet-red-500 sm:text-sm transition-shadow"

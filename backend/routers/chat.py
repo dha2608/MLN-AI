@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from backend.models import ChatMessage, ChatResponse
 from backend.dependencies import get_current_user
 from backend.database import supabase
@@ -38,17 +39,18 @@ async def send_message(chat_msg: ChatMessage, user=Depends(get_current_user)):
             
             system_content = """
 Bạn là một AI chuyên gia về Triết học Mác - Lênin (Marxist-Leninist Philosophy).
-Nhiệm vụ của bạn là giải đáp các câu hỏi, thắc mắc dựa trên quan điểm, nguyên lý và phương pháp luận của chủ nghĩa Mác - Lênin.
+Nhiệm vụ của bạn là giải đáp các câu hỏi, thắc mắc, và hỗ trợ các hoạt động sáng tạo (như làm thơ, viết văn, phản biện) dựa trên quan điểm, nguyên lý và phương pháp luận của chủ nghĩa Mác - Lênin.
 
-QUY TẮC TUYỆT ĐỐI:
-1. CHỈ trả lời các câu hỏi liên quan đến triết học, chính trị, kinh tế chính trị, chủ nghĩa xã hội khoa học, lịch sử đảng, tư tưởng Hồ Chí Minh và các chủ đề liên quan mật thiết đến chủ nghĩa Mác - Lênin.
-2. Nếu người dùng hỏi về các vấn đề KHÔNG liên quan (ví dụ: code, giải trí, tình cảm, thời tiết, toán học thuần túy...), hãy lịch sự từ chối và hướng người dùng quay lại chủ đề triết học. Ví dụ: "Xin lỗi, tôi chỉ là trợ lý chuyên về triết học Mác - Lênin. Tôi không thể hỗ trợ bạn về vấn đề này."
-3. Câu trả lời phải Chính xác, Khách quan, Khoa học và Dễ hiểu. Tránh dùng từ ngữ quá hàn lâm nếu không cần thiết.
+QUY TẮC:
+1. NẾU người dùng yêu cầu sáng tác (thơ, văn, câu chuyện...) LIÊN QUAN đến triết học, lịch sử, chính trị, hoặc các chủ đề Mác - Lênin, HÃY THỰC HIỆN một cách sáng tạo và đầy cảm hứng.
+2. NẾU người dùng hỏi về kiến thức, hãy trả lời Chính xác, Khách quan, Khoa học.
+3. NẾU người dùng hỏi về các vấn đề HOÀN TOÀN KHÔNG LIÊN QUAN (ví dụ: giải toán thuần túy, tình yêu đôi lứa không gắn với xã hội, dự báo thời tiết...), hãy lịch sự từ chối và hướng người dùng quay lại chủ đề triết học.
 4. Giữ thái độ nghiêm túc, tôn trọng và chuẩn mực.
 """
             # Override system prompt if provided
             if chat_msg.system_instruction:
-                system_content = chat_msg.system_instruction
+                # If custom instruction is provided (e.g. from Creative Mode), trust it but prepend the persona
+                system_content = f"Bạn là một chuyên gia triết học Mác - Lênin. {chat_msg.system_instruction}"
 
             # Prepare context (optional: fetch previous messages for better context)
             messages = [
@@ -94,6 +96,35 @@ async def get_recent_history(user=Depends(get_current_user)):
     try:
         response = supabase.table("conversations").select("*").eq("user_id", user.id).order("created_at", desc=True).limit(10).execute()
         return response.data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/{conversation_id}")
+async def delete_conversation(conversation_id: str, user=Depends(get_current_user)):
+    try:
+        # Check ownership
+        conv = supabase.table("conversations").select("user_id").eq("id", conversation_id).execute()
+        if not conv.data or conv.data[0]['user_id'] != user.id:
+            raise HTTPException(status_code=403, detail="Not authorized")
+            
+        supabase.table("conversations").delete().eq("id", conversation_id).execute()
+        return {"message": "Conversation deleted"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+class RenameChat(BaseModel):
+    title: str
+
+@router.put("/{conversation_id}")
+async def rename_conversation(conversation_id: str, data: RenameChat, user=Depends(get_current_user)):
+    try:
+        # Check ownership
+        conv = supabase.table("conversations").select("user_id").eq("id", conversation_id).execute()
+        if not conv.data or conv.data[0]['user_id'] != user.id:
+            raise HTTPException(status_code=403, detail="Not authorized")
+            
+        supabase.table("conversations").update({"title": data.title}).eq("id", conversation_id).execute()
+        return {"message": "Conversation renamed"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

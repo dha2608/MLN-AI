@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BrainCircuit, CheckCircle, XCircle, Trophy, ArrowRight, RefreshCcw } from 'lucide-react';
 import { clsx } from 'clsx';
@@ -74,18 +74,79 @@ export default function Quiz() {
     const [isAnswered, setIsAnswered] = useState(false);
     const [score, setScore] = useState(0);
     const [showResult, setShowResult] = useState(false);
+    const navigate = useNavigate();
+    const [canTakeQuiz, setCanTakeQuiz] = useState(true);
 
     const currentQuestion = QUESTIONS[currentQuestionIdx];
 
+    useEffect(() => {
+        const checkStatus = async () => {
+            try {
+                const res = await api.get('/quiz/status');
+                setCanTakeQuiz(res.data.can_take_quiz);
+            } catch (error) {
+                console.error("Failed to check quiz status", error);
+            }
+        };
+        checkStatus();
+    }, []);
+
     const handleOptionSelect = (idx: number) => {
-        if (isAnswered) return;
+        if (isAnswered || !canTakeQuiz) return;
         setSelectedOption(idx);
     };
 
-    const handleSubmit = () => {
+    if (!canTakeQuiz && !showResult) {
+        return (
+            <div className="flex h-full bg-gray-50 items-center justify-center font-sans">
+                <motion.div 
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full text-center"
+                >
+                    <div className="bg-soviet-red-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <CheckCircle className="h-12 w-12 text-soviet-red-600" />
+                    </div>
+                    <h2 className="text-2xl font-serif font-bold text-gray-900 mb-2">Đã hoàn thành!</h2>
+                    <p className="text-gray-600 mb-6">Bạn đã hoàn thành bài trắc nghiệm của ngày hôm nay. Hãy quay lại vào ngày mai nhé!</p>
+                    
+                    <button 
+                        onClick={() => navigate('/leaderboard')}
+                        className="w-full py-3 bg-soviet-red-700 text-white rounded-xl font-medium hover:bg-soviet-red-800 transition-colors flex items-center justify-center"
+                    >
+                        <Trophy className="mr-2 h-5 w-5" />
+                        Xem Bảng xếp hạng
+                    </button>
+                </motion.div>
+            </div>
+        );
+    }
+
+    const handleSubmit = async () => {
         if (selectedOption === null) return;
-        f(ption === currentQuestion.correct) {
-            setScore(score + 1
+        
+        setIsAnswered(true);
+        const isCorrect = selectedOption === currentQuestion.correct;
+        
+        if (isCorrect) {
+            setScore(score + 1);
+            try {
+                // Submit score to backend
+                await api.post('/quiz/submit', { score: 1 });
+            } catch (error) {
+                console.error("Failed to submit score", error);
+            }
+        }
+    };
+
+    const handleNext = () => {
+        if (currentQuestionIdx < QUESTIONS.length - 1) {
+            setCurrentQuestionIdx(currentQuestionIdx + 1);
+            setSelectedOption(null);
+            setIsAnswered(false);
+        } else {
+            setShowResult(true);
+        }
     };
 
     const handleRestart = () => {
@@ -107,42 +168,40 @@ export default function Quiz() {
                     <div className="bg-soviet-red-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
                         <Trophy className="h-12 w-12 text-soviet-red-600" />
                     </div>
-    const nav gate = useNavigate();
-
-    i               <h2 className="text-3xl font-serif font-bold text-gray-900 mb-2">Hoàn thành!</h2>
+                    <h2 className="text-3xl font-serif font-bold text-gray-900 mb-2">Hoàn thành!</h2>
                     <p className="text-gray-600 mb-6">Bạn đã trả lời đúng</p>
                     
                     <div className="text-5xl font-bold text-soviet-red-700 mb-8">
                         {score} <span className="text-2xl text-gray-400">/ {QUESTIONS.length}</span>
                     </div>
 
-                    <button 
-                        onClick={handleRestart}
-                        className="w-full py-3 bg-soviet-red-700 text-white rounded-xl font-medium hover:bg-soviet-red-800 transition-colors flex items-center justify-center"
-                    >
-                        <RefreshCcw className="mr-2 h-5 w-5" />
-                        Thử lại
-                    </button>
-                </motion.div>
-            </div>
-        );
-
-                    <div className="space-y-3">    }
-    
-    return (    () => nvigate('/adrbod')
-            <div className="flex h-full bg-gray-50 overflow-hidden font-sans">
-            <div cla    ssName="max-w-4xl mx-auto w-full py-10 px-4 sm:px-6 lg:px-8 flex flex-col h-full">
-                    Trophy className="mr-2 h-5 w-5" />
+                    <div className="space-y-3">
+                        <button 
+                            onClick={() => navigate('/leaderboard')}
+                            className="w-full py-3 bg-soviet-red-700 text-white rounded-xl font-medium hover:bg-soviet-red-800 transition-colors flex items-center justify-center"
+                        >
+                            <Trophy className="mr-2 h-5 w-5" />
                             Xem Bảng xếp hạng
                         </button>
                         <button 
                             onClick={handleRestart}
                             className="w-full py-3 bg-white border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors flex items-center justify-center"
                         >
-                            <
-                    {/* Header */}
-                    <div classNa>
-                    </divme="mb-8">
+                            <RefreshCcw className="mr-2 h-5 w-5" />
+                            Thử lại
+                        </button>
+                    </div>
+                </motion.div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex h-full bg-gray-50 overflow-hidden font-sans">
+            <div className="max-w-4xl mx-auto w-full py-10 px-4 sm:px-6 lg:px-8 flex flex-col h-full">
+                
+                {/* Header */}
+                <div className="mb-8">
                     <div className="flex items-center space-x-2 text-soviet-red-700 mb-2">
                         <BrainCircuit className="h-6 w-6" />
                         <span className="font-bold tracking-wider uppercase text-sm">Trắc nghiệm Triết học</span>

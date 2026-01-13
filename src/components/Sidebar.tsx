@@ -1,9 +1,9 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
-import { MessageSquare, User, BarChart2, LogOut, Plus, BookOpen, Library, BrainCircuit, Trash2, Award } from 'lucide-react';
+import { MessageSquare, User, BarChart2, LogOut, Plus, BookOpen, Library, BrainCircuit, Trash2, Award, Edit3, Check, X } from 'lucide-react';
 import { clsx } from 'clsx';
 import { motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 
@@ -12,25 +12,72 @@ export default function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const [recentChats, setRecentChats] = useState<any[]>([]);
+  const [editingChatId, setEditingChatId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const editInputRef = useRef<HTMLInputElement>(null);
+
+  const fetchRecentChats = async () => {
+      try {
+          const res = await api.get('/chat/history/recent');
+          setRecentChats(res.data);
+      } catch (e) {
+          console.error("Failed to load history", e);
+      }
+  };
 
   useEffect(() => {
-    const fetchRecentChats = async () => {
-        try {
-            const res = await api.get('/chat/history/recent');
-            setRecentChats(res.data);
-        } catch (e) {
-            console.error("Failed to load history", e);
-        }
-    };
     if (user) {
         fetchRecentChats();
     }
-  }, [user, location.pathname]); // Refresh when path changes (new chat might be created)
+  }, [user, location.pathname]);
+
+  const handleDeleteChat = async (e: React.MouseEvent, chatId: string) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!confirm("Bạn có chắc muốn xóa cuộc trò chuyện này?")) return;
+      
+      try {
+          await api.delete(`/chat/${chatId}`);
+          toast.success("Đã xóa cuộc trò chuyện");
+          fetchRecentChats();
+          if (location.pathname === `/chat/${chatId}`) {
+              navigate('/');
+          }
+      } catch (error) {
+          toast.error("Xóa thất bại");
+      }
+  }
+
+  const startRename = (e: React.MouseEvent, chat: any) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setEditingChatId(chat.id);
+      setEditTitle(chat.title || '');
+  }
+
+  const handleRename = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!editTitle.trim()) return;
+      
+      try {
+          await api.put(`/chat/${editingChatId}`, { title: editTitle });
+          toast.success("Đã đổi tên");
+          setEditingChatId(null);
+          fetchRecentChats();
+      } catch (error) {
+          toast.error("Đổi tên thất bại");
+      }
+  }
+
+  const cancelRename = () => {
+      setEditingChatId(null);
+  }
 
   const navItems = [
     { href: '/', label: 'Hỏi đáp Triết học', icon: MessageSquare },
     { href: '/library', label: 'Thư viện Triết học', icon: Library },
     { href: '/quiz', label: 'Trắc nghiệm', icon: BrainCircuit },
+    { href: '/leaderboard', label: 'Bảng xếp hạng', icon: Award },
     { href: '/statistics', label: 'Thống kê học tập', icon: BarChart2 },
     { href: '/profile', label: 'Hồ sơ cá nhân', icon: User },
   ];
@@ -98,19 +145,53 @@ export default function Sidebar() {
                     </div>
                 ) : (
                     recentChats.map((chat) => (
+                        editingChatId === chat.id ? (
+                            <form key={chat.id} onSubmit={handleRename} className="px-3 py-2 flex items-center space-x-1 bg-white border border-soviet-red-300 rounded-lg shadow-sm">
+                                <input
+                                    ref={editInputRef}
+                                    type="text"
+                                    name="rename-chat"
+                                    id="rename-chat-input"
+                                    autoComplete="off"
+                                    value={editTitle}
+                                    onChange={(e) => setEditTitle(e.target.value)}
+                                    className="w-full text-sm border-none focus:ring-0 p-0"
+                                    autoFocus
+                                />
+                                <button type="submit" className="text-green-600 hover:text-green-700 p-1"><Check className="h-4 w-4" /></button>
+                                <button type="button" onClick={cancelRename} className="text-red-500 hover:text-red-600 p-1"><X className="h-4 w-4" /></button>
+                            </form>
+                        ) : (
                         <Link
                             key={chat.id}
                             to={`/chat/${chat.id}`}
                             className={clsx(
-                                "block px-3 py-2 text-sm rounded-lg truncate transition-colors",
+                                "block px-3 py-2 text-sm rounded-lg truncate transition-colors group relative pr-16",
                                 location.pathname === `/chat/${chat.id}`
                                     ? "bg-gray-100 text-gray-900 font-medium"
                                     : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
                             )}
                             title={chat.title}
                         >
-                            {chat.title || "Cuộc hội thoại mới"}
+                            <span className="truncate block">{chat.title || "Cuộc hội thoại mới"}</span>
+                            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity bg-inherit">
+                                <button
+                                    onClick={(e) => startRename(e, chat)}
+                                    className="p-1 text-gray-400 hover:text-blue-600 rounded hover:bg-blue-50"
+                                    title="Đổi tên"
+                                >
+                                    <Edit3 className="h-3 w-3" />
+                                </button>
+                                <button
+                                    onClick={(e) => handleDeleteChat(e, chat.id)}
+                                    className="p-1 text-gray-400 hover:text-red-600 rounded hover:bg-red-50"
+                                    title="Xóa"
+                                >
+                                    <Trash2 className="h-3 w-3" />
+                                </button>
+                            </div>
                         </Link>
+                        )
                     ))
                 )}
              </div>

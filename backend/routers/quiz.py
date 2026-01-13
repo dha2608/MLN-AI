@@ -8,24 +8,51 @@ router = APIRouter()
 class QuizSubmission(BaseModel):
     score: int
 
+from datetime import date
+
+@router.get("/status")
+async def get_quiz_status(user=Depends(get_current_user)):
+    try:
+        user_id = user.id
+        stats = supabase.table("statistics").select("last_quiz_date").eq("user_id", user_id).execute()
+        
+        today = str(date.today())
+        can_take_quiz = True
+        
+        if stats.data:
+            last_date = stats.data[0].get('last_quiz_date')
+            if last_date == today:
+                can_take_quiz = False
+                
+        return {"can_take_quiz": can_take_quiz}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/submit")
 async def submit_quiz(submission: QuizSubmission, user=Depends(get_current_user)):
     try:
         user_id = user.id
+        today = str(date.today())
         
-        # Get current stats
-        stats = supabase.table("statistics").select("*").eq("user_id", user_id).execute()
+        # Check if already taken
+        stats_res = supabase.table("statistics").select("*").eq("user_id", user_id).execute()
         
-        if not stats.data:
+        if stats_res.data and stats_res.data[0].get('last_quiz_date') == today:
+             raise HTTPException(status_code=400, detail="Bạn đã thực hiện bài trắc nghiệm hôm nay rồi.")
+
+        if not stats_res.data:
             supabase.table("statistics").insert({
                 "user_id": user_id, 
-                "quiz_score": submission.score
+                "quiz_score": submission.score,
+                "last_quiz_date": today
             }).execute()
         else:
-            current_score = stats.data[0].get('quiz_score', 0)
-            # Accumulate score (or you could replace it, depending on requirement. "mỗi ngày 5 câu" implies accumulation)
+            current_score = stats_res.data[0].get('quiz_score', 0)
             new_score = current_score + submission.score
-            supabase.table("statistics").update({"quiz_score": new_score}).eq("user_id", user_id).execute()
+            supabase.table("statistics").update({
+                "quiz_score": new_score,
+                "last_quiz_date": today
+            }).eq("user_id", user_id).execute()
             
         return {"message": "Score updated", "total_score": new_score if 'new_score' in locals() else submission.score}
 

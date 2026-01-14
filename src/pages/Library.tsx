@@ -259,6 +259,9 @@ export default function Library() {
                                             referrerPolicy="no-referrer"
                                             crossOrigin="anonymous"
                                             className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                e.currentTarget.src = "https://placehold.co/600x400/8B0000/FFFFFF?text=Triet+Hoc";
+                                            }}
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                                     </div>

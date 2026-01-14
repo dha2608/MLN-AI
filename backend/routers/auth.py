@@ -43,7 +43,11 @@ async def register(user_data: UserRegister):
                 "token_type": "bearer"
             }
         else:
-            # Try login immediately (works if Confirm Email is OFF)
+            # Check if auto-confirm is enabled by trying to login immediately
+            # If the session is missing, it MIGHT be because email confirmation is required.
+            # OR it might be because Supabase returned a user but no session for some other reason.
+            
+            # Try to sign in. If this works, we return the token.
             try:
                 login_response = supabase.auth.sign_in_with_password({
                     "email": user_data.email,
@@ -58,10 +62,22 @@ async def register(user_data: UserRegister):
                     }
             except:
                 pass
-                
-            # If still no session, it means Confirm Email is ON
+            
+            # If login failed, assume email confirmation is needed or session creation failed silently
+            # In standard Supabase setup, sign_up with auto-confirm OFF returns user but no session.
+            # We return a 200 OK with a message, but the frontend needs to handle this non-token response.
+            
+            # IMPORTANT: Frontend expects either a token OR a message.
+            # However, standard flow is usually to auto-login.
+            # If we return a dict with "message", the frontend (if using Token model) might fail validation 
+            # if the response_model is strict. 
+            
+            # Let's change the response logic to be more flexible or return a specific status.
+            # But wait, this endpoint doesn't enforce response_model=Token in the decorator.
+            # So returning a dict is fine.
+            
             return {
-                "message": "Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản trước khi đăng nhập."
+                "message": "Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản."
             }
 
     except Exception as e:

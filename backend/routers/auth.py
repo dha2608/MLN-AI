@@ -87,6 +87,10 @@ async def login(user_data: UserLogin):
             "refresh_token": response.session.refresh_token,
             "token_type": "bearer"
         }
+    except AuthApiError as e:
+        print(f"Auth Error: {e}")
+        raise HTTPException(status_code=400, detail="Email hoặc mật khẩu không chính xác")
     except Exception as e:
         print(f"Login Error: {e}")
-        raise HTTPException(status_code=400, detail="Invalid email or password")
+        # In production, avoid leaking internal errors, but for now we log it
+        raise HTTPException(status_code=500, detail=f"Internal Login Error: {str(e)}")

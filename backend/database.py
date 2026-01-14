@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from supabase import create_client, Client
+from gotrue.errors import AuthApiError
 
 # Load env from root directory
 env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')

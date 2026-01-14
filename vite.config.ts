@@ -15,6 +15,14 @@ export default defineConfig({
   },
   build: {
     sourcemap: 'hidden',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom', 'framer-motion'],
+          ui: ['lucide-react', 'react-hot-toast', 'clsx', 'tailwind-merge'],
+        },
+      },
+    },
   },
   plugins: [
     react({

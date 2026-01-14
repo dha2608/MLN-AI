@@ -39,7 +39,7 @@ export default function Leaderboard() {
     };
 
     return (
-        <div className="flex h-full bg-gray-50 overflow-hidden font-sans">
+        <div className="flex h-full bg-gray-50 overflow-y-auto font-sans">
             <div className="max-w-4xl mx-auto w-full py-10 px-4 sm:px-6 lg:px-8">
                 
                 <div className="text-center mb-10">

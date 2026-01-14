@@ -91,7 +91,7 @@ async def get_leaderboard():
     try:
         log_info("Fetching leaderboard")
         # Join with users table to get names
-        response = supabase.table("statistics").select("*").order("quiz_score", desc=True).limit(10).execute()
+        response = supabase.table("statistics").select("*").order("quiz_score", desc=True).limit(50).execute()
         
         leaderboard = []
         for stat in response.data:

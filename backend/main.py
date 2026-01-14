@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.routers import auth, chat, stats, user, quiz
 import os
 
+print("Starting FastAPI app...") # Debug log for Vercel
+
 app = FastAPI()
 
 # Get allowed origins from environment variable, default to localhost for dev

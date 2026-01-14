@@ -54,7 +54,7 @@ def debug_endpoint():
     import sys
     import httpx
     import supabase as sb_module
-    from backend.database import supabase
+    from backend.database import supabase, init_error
     
     # Check env vars
     url = os.environ.get("SUPABASE_URL", "")
@@ -67,6 +67,7 @@ def debug_endpoint():
         # Check if it's our DummyClient
         if type(supabase).__name__ == "DummyClient":
              client_status = "DummyClient (Initialization Failed)"
+             client_error = init_error
         else:
              client_status = "Initialized"
     except Exception as e:

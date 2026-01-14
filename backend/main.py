@@ -37,4 +37,14 @@ def read_root():
 
 @app.get("/api/health")
 def health_check():
-    return {"status": "ok"}
+    supabase_url = os.environ.get("SUPABASE_URL")
+    supabase_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_KEY")
+    
+    status_info = {
+        "status": "ok",
+        "env_check": {
+            "SUPABASE_URL": "Set" if supabase_url else "Missing",
+            "SUPABASE_KEY": "Set" if supabase_key else "Missing"
+        }
+    }
+    return status_info

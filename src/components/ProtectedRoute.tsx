@@ -14,7 +14,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
       return <div className="flex h-screen items-center justify-center">Loading...</div>;
   }
 
-  if (!token) {
+  if (!token && !isLoading) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

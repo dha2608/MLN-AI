@@ -108,7 +108,7 @@ export default function Leaderboard() {
                                                 <div className="flex items-center">
                                                     <div className="flex-shrink-0 h-10 w-10 rounded-full bg-soviet-red-100 flex items-center justify-center text-soviet-red-700 font-bold border-2 border-white shadow-sm overflow-hidden">
                                                         {item.avatar_url ? (
-                                                            <img src={item.avatar_url} alt={item.name} className="h-full w-full object-cover" />
+                                                            <img src={item.avatar_url} alt={item.name} className="h-full w-full object-cover" referrerPolicy="no-referrer" />
                                                         ) : (
                                                             item.name.charAt(0).toUpperCase()
                                                         )}

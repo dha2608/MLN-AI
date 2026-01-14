@@ -1,5 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from 'react-hot-toast';
+import { useEffect } from 'react';
+import { supabase } from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Chat from "@/pages/Chat";
@@ -11,12 +14,33 @@ import Leaderboard from "@/pages/Leaderboard";
 import Layout from "@/components/Layout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
-import { SpeedInsights } from "@vercel/speed-insights/react";
-
 export default function App() {
+  const { setSession, isAuthChecking } = useAuthStore();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (isAuthChecking) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-soviet-red-700"></div>
+      </div>
+    );
+  }
+
   return (
     <Router>
-      <SpeedInsights />
       <Toaster position="top-right" />
       <Routes>
         <Route path="/login" element={<Login />} />

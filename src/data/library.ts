@@ -32,7 +32,7 @@ export const LIBRARY_DATA: LibraryCategory[] = [
                 id: 'c1', 
                 title: 'Vật chất và Ý thức', 
                 desc: 'Mối quan hệ biện chứng giữa vật chất và ý thức.',
-                image: 'https://images.unsplash.com/photo-1559757175-5700dde675bc?q=80&w=2531&auto=format&fit=crop', // Brain/Consciousness abstract
+                image: 'https://images.unsplash.com/photo-1507413245164-6160d8298b31?q=80&w=1000&auto=format&fit=crop', // Brain/Consciousness abstract
                 content: `
 ### 1. Phạm trù Vật chất
 - **Định nghĩa của Lênin**: "Vật chất là một phạm trù triết học dùng để chỉ thực tại khách quan được đem lại cho con người trong cảm giác, được cảm giác của chúng ta chép lại, chụp lại, phản ánh, và tồn tại không lệ thuộc vào cảm giác."
@@ -52,7 +52,7 @@ export const LIBRARY_DATA: LibraryCategory[] = [
                 id: 'c2', 
                 title: 'Hai nguyên lý', 
                 desc: 'Nguyên lý về mối liên hệ phổ biến và Nguyên lý về sự phát triển.',
-                image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=2670&auto=format&fit=crop', // Connection network
+                image: 'https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?q=80&w=1000&auto=format&fit=crop', // Connection network
                 content: `
 ### 1. Nguyên lý về mối liên hệ phổ biến
 - **Khái niệm**: Các sự vật, hiện tượng trong thế giới không tồn tại cô lập, biệt lập mà nằm trong một chỉnh thể thống nhất, có mối liên hệ, tác động qua lại, ràng buộc lẫn nhau.
@@ -69,7 +69,7 @@ export const LIBRARY_DATA: LibraryCategory[] = [
                 id: 'c3', 
                 title: 'Ba quy luật cơ bản', 
                 desc: 'Lượng - Chất, Mâu thuẫn, Phủ định của phủ định.',
-                image: 'https://images.unsplash.com/photo-1460353581641-37baddab0fa2?q=80&w=2671&auto=format&fit=crop', // Transformation/Change
+                image: 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?q=80&w=1000&auto=format&fit=crop', // Transformation/Change
                 content: `
 ### 1. Quy luật chuyển hóa từ những sự thay đổi về lượng thành những sự thay đổi về chất và ngược lại
 - Chỉ ra cách thức của sự vận động và phát triển.
@@ -88,7 +88,7 @@ export const LIBRARY_DATA: LibraryCategory[] = [
                 id: 'c4', 
                 title: 'Sáu cặp phạm trù', 
                 desc: 'Các cặp phạm trù cơ bản của phép biện chứng duy vật.',
-                image: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=2670&auto=format&fit=crop', // Geometry/Structure
+                image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1000&auto=format&fit=crop', // Geometry/Structure
                 content: `
 1. **Cái riêng và Cái chung**: Cái chung chỉ tồn tại trong cái riêng, thông qua cái riêng. Cái riêng chỉ tồn tại trong mối liên hệ đưa đến cái chung.
 2. **Nguyên nhân và Kết quả**: Nguyên nhân sinh ra kết quả. Một nguyên nhân có thể sinh ra nhiều kết quả và ngược lại.
@@ -163,7 +163,7 @@ Chân lý là những tri thức phù hợp với hiện thực khách quan và 
                 id: 'c5', 
                 title: 'Hình thái Kinh tế - Xã hội', 
                 desc: 'Học thuyết về hình thái kinh tế - xã hội.', 
-                image: 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?q=80&w=2613&auto=format&fit=crop', // Cityscape/Society
+                image: 'https://images.unsplash.com/photo-1444653614773-995cb7546652?q=80&w=1000&auto=format&fit=crop', // Cityscape/Society
                 content: `
 ### 1. Khái niệm
 Hình thái kinh tế - xã hội là một phạm trù của chủ nghĩa duy vật lịch sử dùng để chỉ xã hội ở từng giai đoạn lịch sử nhất định, với một kiểu quan hệ sản xuất đặc trưng cho xã hội đó phù hợp với một trình độ nhất định của lực lượng sản xuất và với một kiến trúc thượng tầng tương ứng được xây dựng trên những quan hệ sản xuất ấy.
@@ -198,7 +198,7 @@ Là toàn bộ những quan điểm, tư tưởng xã hội với những thiế
                 id: 'c7', 
                 title: 'Giai cấp và Đấu tranh giai cấp', 
                 desc: 'Động lực phát triển của xã hội có giai cấp.', 
-                image: 'https://images.unsplash.com/photo-1555848962-6e79363ec58f?q=80&w=2606&auto=format&fit=crop', // Crowd/Protest
+                image: 'https://images.unsplash.com/photo-1533234914392-12f74151a66e?q=80&w=1000&auto=format&fit=crop', // Crowd/Protest
                 content: `
 ### 1. Định nghĩa Giai cấp (Lênin)
 "Người ta gọi là giai cấp, những tập đoàn to lớn gồm những người khác nhau về địa vị của họ trong một hệ thống sản xuất xã hội nhất định trong lịch sử, khác nhau về quan hệ của họ (thường thường thì những quan hệ này được pháp luật quy định và thừa nhận) đối với những tư liệu sản xuất, về vai trò của họ trong tổ chức lao động xã hội, và như vậy là khác nhau về cách thức hưởng thụ và về phần của cải xã hội ít hay nhiều mà họ được hưởng."
@@ -215,7 +215,7 @@ Là cuộc đấu tranh giữa các giai cấp có lợi ích căn bản đối 
                 id: 'c15',
                 title: 'Nhà nước',
                 desc: 'Nguồn gốc, bản chất và chức năng của nhà nước.',
-                image: 'https://images.unsplash.com/photo-1541872703-74c5963631df?q=80&w=2670&auto=format&fit=crop', // Government building
+                image: 'https://images.unsplash.com/photo-1555848962-6e79363ec58f?q=80&w=1000&auto=format&fit=crop', // Government building
                 content: `
 ### 1. Nguồn gốc
 Nhà nước là sản phẩm và biểu hiện của những mâu thuẫn giai cấp không thể điều hòa được.
@@ -254,7 +254,7 @@ Là mặt tinh thần của đời sống xã hội, bao gồm toàn bộ nhữn
                 id: 'c23',
                 title: 'Tha hóa con người',
                 desc: 'Sự tha hóa của lao động trong chế độ tư bản.',
-                image: 'https://images.unsplash.com/photo-1505545121909-2d48e22f16ee?q=80&w=2574&auto=format&fit=crop', // Lonely person/Alienation
+                image: 'https://images.unsplash.com/photo-1505545121909-2d48e22f16ee?q=80&w=1000&auto=format&fit=crop', // Lonely person/Alienation
                 content: `
 ### Khái niệm
 Tha hóa là quá trình trong đó những sản phẩm do con người tạo ra lại trở thành một lực lượng xa lạ, thống trị và chống lại chính con người.
@@ -279,7 +279,7 @@ Tha hóa là quá trình trong đó những sản phẩm do con người tạo r
                 id: 'c8', 
                 title: 'Hàng hóa & Tiền tệ', 
                 desc: 'Hai thuộc tính của hàng hóa.', 
-                image: 'https://images.unsplash.com/photo-1621981386829-9b788a82e9eb?q=80&w=2574&auto=format&fit=crop', // Gold/Money
+                image: 'https://images.unsplash.com/photo-1611974765270-ca12586343bb?q=80&w=1000&auto=format&fit=crop', // Gold/Money
                 content: `
 ### 1. Hàng hóa
 Là sản phẩm của lao động, có thể thỏa mãn nhu cầu nào đó của con người thông qua trao đổi, mua bán.
@@ -364,7 +364,7 @@ Là quá trình chuyển hóa một phần giá trị thặng dư trở lại th
                 id: 'c24',
                 title: 'Hàng hóa sức lao động',
                 desc: 'Điều kiện để sức lao động trở thành hàng hóa.',
-                image: 'https://images.unsplash.com/photo-1589758438368-0ad531db3366?q=80&w=2670&auto=format&fit=crop', // Workers
+                image: 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?q=80&w=1000&auto=format&fit=crop', // Workers
                 content: `
 ### Điều kiện ra đời
 1. Người lao động được tự do về thân thể.

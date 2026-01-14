@@ -203,7 +203,7 @@ export default function Sidebar() {
         <div className="flex items-center">
           <div className="h-10 w-10 rounded-full bg-soviet-red-100 border-2 border-white shadow-sm overflow-hidden flex-shrink-0">
              {user?.avatar_url ? (
-                <img src={user.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
+                <img src={user.avatar_url} alt="Avatar" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
              ) : (
                 <div className="h-full w-full flex items-center justify-center text-soviet-red-700 font-bold">
                     {user?.name?.charAt(0).toUpperCase()}
@@ -211,7 +211,7 @@ export default function Sidebar() {
              )}
           </div>
           <div className="ml-3 flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate font-serif">{user?.name}</p>
+            <p className="text-sm font-medium text-gray-900 truncate font-serif">{user?.name || user?.email}</p>
             <p className="text-xs text-gray-500 truncate">{user?.email}</p>
           </div>
           <button

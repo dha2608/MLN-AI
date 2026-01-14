@@ -10,8 +10,37 @@ async def get_profile(user=Depends(get_current_user)):
         # Get from public.users table
         response = supabase.table("users").select("*").eq("id", user.id).execute()
         if response.data:
-            return response.data[0]
-        return {"email": user.email, "id": user.id} # Fallback
+            user_data = response.data[0]
+            # Sync with Supabase Auth metadata if public.users is outdated or empty
+            # But primarily we trust the database record. 
+            # If avatar is missing in DB but exists in Auth (Google login), we could sync it here.
+            if not user_data.get('avatar_url') and user.user_metadata.get('avatar_url'):
+                 # Auto-update avatar from Google
+                 avatar = user.user_metadata.get('avatar_url')
+                 supabase.table("users").update({"avatar_url": avatar}).eq("id", user.id).execute()
+                 user_data['avatar_url'] = avatar
+            
+            if not user_data.get('name') and user.user_metadata.get('full_name'):
+                 name = user.user_metadata.get('full_name')
+                 supabase.table("users").update({"name": name}).eq("id", user.id).execute()
+                 user_data['name'] = name
+
+            return user_data
+            
+        # If no record in public.users (rare if trigger works, but possible)
+        # Create one from Auth data
+        new_user = {
+            "id": user.id,
+            "email": user.email,
+            "name": user.user_metadata.get('full_name') or user.user_metadata.get('name') or user.email.split('@')[0],
+            "avatar_url": user.user_metadata.get('avatar_url')
+        }
+        try:
+            supabase.table("users").insert(new_user).execute()
+            return new_user
+        except:
+            return {"email": user.email, "id": user.id} # Fallback
+            
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -130,12 +130,9 @@ export default function Quiz() {
         
         if (isCorrect) {
             setScore(score + 1);
-            try {
-                // Submit score to backend
-                await api.post('/quiz/submit', { score: 1 });
-            } catch (error) {
-                console.error("Failed to submit score", error);
-            }
+            // We accumulate score locally and submit only at the end to avoid "Already taken" errors
+            // or we could implement a more complex backend logic.
+            // For now, let's keep it simple: we DO NOT submit per question anymore.
         }
     };
 
@@ -145,9 +142,49 @@ export default function Quiz() {
             setSelectedOption(null);
             setIsAnswered(false);
         } else {
-            setShowResult(true);
+            finishQuiz();
         }
     };
+
+    const finishQuiz = async () => {
+        setShowResult(true);
+        try {
+            // Submit total score at the end
+            // Note: backend might expect {score: increment_value} or {score: total}.
+            // Looking at backend: new_score = current_score + submission.score
+            // So we should submit the TOTAL accumulated score for this session?
+            // Wait, if backend ADDS, then if I send 5, it adds 5.
+            // If I sent 1, 1, 1 before, it added 1, 1, 1.
+            // Now I am NOT sending per question. So I send `score` at the end.
+            // BUT `score` state is not updated immediately inside handleSubmit? 
+            // `setScore(score + 1)` schedules update. 
+            // So in `finishQuiz` (called by handleNext which is manual), `score` IS updated.
+            // Exception: The LAST question.
+            // If I answer last question correct -> handleSubmit -> setScore -> isAnswered=true.
+            // Then user clicks "Xem kết quả" (was handleNext).
+            // So score is ready.
+            
+            if (score > 0 || (selectedOption === currentQuestion.correct)) {
+                 // Adjust score if the last answer was correct and just submitted?
+                 // No, `score` state should be correct when `finishQuiz` runs.
+                 // Actually, `handleSubmit` updates `score`.
+                 // User sees "Next" or "See Result".
+                 // User clicks "See Result" -> `handleNext` -> `finishQuiz`.
+                 // So `score` is up to date.
+                 
+                 // However, we need to be careful. The last question's point is added to `score`.
+                 // Let's pass the final score to submit.
+                 
+                 await api.post('/quiz/submit', { score: score });
+            }
+        } catch (error: any) {
+            console.error("Failed to submit score", error);
+            if (error.response?.status === 400) {
+                 // Already taken
+                 // We can show a toast or just ignore since we show the result screen anyway.
+            }
+        }
+    }
 
     const handleRestart = () => {
         setCurrentQuestionIdx(0);

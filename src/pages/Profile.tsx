@@ -59,7 +59,7 @@ export default function Profile() {
             <div className="relative">
               <div className="h-32 w-32 rounded-full overflow-hidden bg-gray-100 border-4 border-red-500">
                 {user?.avatar_url ? (
-                    <img src={user.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
+                    <img src={user.avatar_url} alt="Avatar" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
                 ) : (
                     <div className="h-full w-full flex items-center justify-center text-4xl text-gray-400 font-bold">
                         {user?.name?.charAt(0).toUpperCase()}

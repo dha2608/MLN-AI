@@ -3,11 +3,26 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import toast from 'react-hot-toast';
 import { BookOpen, ArrowRight } from 'lucide-react';
+import { supabase } from '@/lib/api';
 
 export default function Login() {
   const { register, handleSubmit } = useForm();
   const { login } = useAuthStore();
   const navigate = useNavigate();
+
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`,
+        },
+      });
+      if (error) throw error;
+    } catch (error: any) {
+      toast.error(error.message || 'Đăng nhập Google thất bại');
+    }
+  };
 
   const onSubmit = async (data: any) => {
     try {
@@ -84,16 +99,27 @@ export default function Login() {
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </button>
                 </div>
-              </form>
-            </div>
 
-            <div className="mt-8 text-center">
-               <p className="text-sm text-gray-600">
-                 Chưa có tài khoản?{' '}
-                 <Link to="/register" className="font-medium text-soviet-red-600 hover:text-soviet-red-500 hover:underline">
-                   Đăng ký miễn phí
-                 </Link>
-               </p>
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300" />
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white text-gray-500">Hoặc tiếp tục với</span>
+                  </div>
+                </div>
+
+                <div>
+                  <button
+                    type="button"
+                    onClick={handleGoogleLogin}
+                    className="w-full flex justify-center items-center py-3 px-4 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-soviet-red-500 transition-colors"
+                  >
+                    <img className="h-5 w-5 mr-2" src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google logo" />
+                    Đăng nhập bằng Google
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

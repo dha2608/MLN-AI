@@ -88,7 +88,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
   logout: async () => {
-    const { error } = await import('@/lib/api').then(m => m.supabase.auth.signOut());
+    try {
+        await import('@/lib/api').then(m => m.supabase.auth.signOut());
+    } catch (e) {
+        console.error("Logout error (ignored)", e);
+    }
     localStorage.removeItem('token');
     set({ user: null, token: null });
   },
@@ -97,15 +101,30 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     // Let's handle it gracefully.
     try {
       const token = localStorage.getItem('token');
-      if (!token) {
-        set({ user: null, token: null });
+      // If no token in localStorage, check if there's a session from Supabase (e.g. after OAuth redirect)
+      const { data: { session } } = await import('@/lib/api').then(m => m.supabase.auth.getSession());
+      
+      if (session) {
+         // Found session from OAuth redirect or persistence
+         if (session.access_token !== token) {
+             localStorage.setItem('token', session.access_token);
+             set({ token: session.access_token });
+         }
+      } else if (!token) {
+        set({ user: null, token: null, isAuthChecking: false });
         return;
       }
+      
       const res = await api.get('/user/profile');
-      set({ user: res.data });
+      set({ user: res.data, isAuthChecking: false });
     } catch (e) {
-      localStorage.removeItem('token');
-      set({ user: null, token: null });
+      console.error("Auth check failed", e);
+      // Do not remove token immediately on 500 errors, only 401
+      if ((e as any).response?.status === 401) {
+          localStorage.removeItem('token');
+          set({ user: null, token: null });
+      }
+      set({ isAuthChecking: false });
     }
   },
 }));

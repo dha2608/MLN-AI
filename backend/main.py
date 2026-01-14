@@ -48,3 +48,55 @@ def health_check():
         }
     }
     return status_info
+
+@app.get("/api/debug")
+def debug_endpoint():
+    import sys
+    import httpx
+    import supabase as sb_module
+    from backend.database import supabase
+    
+    # Check env vars
+    url = os.environ.get("SUPABASE_URL", "")
+    key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "") or os.environ.get("SUPABASE_KEY", "")
+    
+    # Check client status
+    client_status = "Unknown"
+    client_error = None
+    try:
+        # Check if it's our DummyClient
+        if type(supabase).__name__ == "DummyClient":
+             client_status = "DummyClient (Initialization Failed)"
+        else:
+             client_status = "Initialized"
+    except Exception as e:
+        client_status = f"Error checking client: {e}"
+
+    # Try connection
+    conn_result = "Not attempted"
+    if client_status == "Initialized":
+        try:
+            # Simple query
+            res = supabase.table("users").select("count", count="exact").execute()
+            conn_result = f"Success. Data: {res}"
+        except Exception as e:
+            conn_result = f"Failed: {e}"
+            client_error = str(e)
+
+    return {
+        "python_version": sys.version,
+        "packages": {
+            "httpx": httpx.__version__,
+            "supabase": sb_module.__version__ if hasattr(sb_module, "__version__") else "unknown"
+        },
+        "env": {
+            "SUPABASE_URL": f"{url[:10]}..." if url else "MISSING",
+            "SUPABASE_KEY_SET": bool(key),
+            "NO_PROXY": os.environ.get("NO_PROXY"),
+            "HTTP_PROXY": os.environ.get("HTTP_PROXY"),
+            "HTTPS_PROXY": os.environ.get("HTTPS_PROXY")
+        },
+        "client_status": client_status,
+        "connection_test": conn_result,
+        "last_error": client_error
+    }

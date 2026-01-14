@@ -11,9 +11,12 @@ import Leaderboard from "@/pages/Leaderboard";
 import Layout from "@/components/Layout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
+import { SpeedInsights } from "@vercel/speed-insights/react";
+
 export default function App() {
   return (
     <Router>
+      <SpeedInsights />
       <Toaster position="top-right" />
       <Routes>
         <Route path="/login" element={<Login />} />

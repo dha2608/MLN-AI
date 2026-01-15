@@ -1,8 +1,8 @@
 import { useForm } from 'react-hook-form';
 import { useAuthStore } from '@/store/authStore';
-import { Camera } from 'lucide-react';
+import { Camera, Lock } from 'lucide-react';
 import { useState } from 'react';
-import api from '@/lib/api';
+import api, { supabase } from '@/lib/api';
 import toast from 'react-hot-toast';
 
 export default function Profile() {
@@ -14,6 +14,8 @@ export default function Profile() {
     }
   });
   const [uploading, setUploading] = useState(false);
+  const [passwords, setPasswords] = useState({ newPassword: '', confirmPassword: '' });
+  const [updatingPassword, setUpdatingPassword] = useState(false);
 
   const onSubmit = async (data: any) => {
     try {
@@ -25,6 +27,30 @@ export default function Profile() {
       toast.error('Cập nhật thất bại: ' + (error.response?.data?.detail || 'Lỗi không xác định'));
     }
   };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (passwords.newPassword !== passwords.confirmPassword) {
+          toast.error("Mật khẩu xác nhận không khớp");
+          return;
+      }
+      if (passwords.newPassword.length < 6) {
+          toast.error("Mật khẩu phải có ít nhất 6 ký tự");
+          return;
+      }
+
+      setUpdatingPassword(true);
+      try {
+          const { error } = await supabase.auth.updateUser({ password: passwords.newPassword });
+          if (error) throw error;
+          toast.success("Đổi mật khẩu thành công");
+          setPasswords({ newPassword: '', confirmPassword: '' });
+      } catch (error: any) {
+          toast.error("Đổi mật khẩu thất bại: " + error.message);
+      } finally {
+          setUpdatingPassword(false);
+      }
+  }
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;

@@ -4,11 +4,69 @@ from backend.database import supabase
 from pydantic import BaseModel
 from datetime import date
 from backend.logger import log_info, log_error
+import os
+import json
+import openai
 
 router = APIRouter()
 
 class QuizSubmission(BaseModel):
     score: int
+
+@router.get("/generate")
+async def generate_quiz(user=Depends(get_current_user)):
+    try:
+        log_info(f"Generating quiz for user {user.id}")
+        
+        openai_api_key = os.getenv("OPENAI_API_KEY")
+        if not openai_api_key:
+             log_error("OpenAI API Key missing")
+             return {"questions": []} # Fallback to frontend pool
+
+        client = openai.OpenAI(api_key=openai_api_key)
+        
+        prompt = """
+        Hãy tạo ra 5 câu hỏi trắc nghiệm về Triết học Mác - Lênin (Marxist-Leninist Philosophy).
+        Mỗi câu hỏi có 4 đáp án (A, B, C, D).
+        Chỉ định rõ đáp án đúng (index 0-3).
+        Giải thích ngắn gọn tại sao đáp án đó đúng.
+        
+        Trả về kết quả dưới dạng JSON thuần túy (không markdown) với cấu trúc mảng:
+        [
+            {
+                "id": 1,
+                "question": "Nội dung câu hỏi...",
+                "options": ["Đáp án A", "Đáp án B", "Đáp án C", "Đáp án D"],
+                "correct": 0,
+                "explanation": "Giải thích..."
+            }
+        ]
+        Đảm bảo kiến thức chính xác, học thuật.
+        """
+
+        completion = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "Bạn là một giảng viên triết học Mác - Lênin. Bạn chỉ trả về JSON."},
+                {"role": "user", "content": prompt}
+            ],
+            response_format={ "type": "json_object" }
+        )
+        
+        content = completion.choices[0].message.content
+        data = json.loads(content)
+        
+        # Handle cases where GPT wraps in a key like "questions": [...]
+        questions = data.get("questions", data)
+        if isinstance(questions, list):
+             return {"questions": questions}
+        
+        return {"questions": []}
+
+    except Exception as e:
+        log_error("Quiz generation error", e)
+        # Return empty so frontend uses fallback
+        return {"questions": []}
 
 @router.get("/status")
 async def get_quiz_status(user=Depends(get_current_user)):

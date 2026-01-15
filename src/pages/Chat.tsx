@@ -293,13 +293,13 @@ export default function Chat() {
           
           {/* Modes Selection */}
           <div className="flex justify-between items-center">
-            <div className="flex space-x-2">
+            <div className="flex space-x-2 overflow-x-auto no-scrollbar pb-2 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0">
             {MODES.map((mode) => (
                 <button
                     key={mode.id}
                     onClick={() => handleModeSelect(mode.id, mode.prompt)}
                     className={clsx(
-                        "flex items-center px-3 py-1.5 rounded-full text-xs font-medium transition-all",
+                        "flex items-center px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap flex-shrink-0",
                         currentMode === mode.id 
                             ? "bg-soviet-red-100 text-soviet-red-800 ring-1 ring-soviet-red-300" 
                             : "bg-gray-100 text-gray-600 hover:bg-gray-200"

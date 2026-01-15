@@ -5,7 +5,7 @@ import { clsx } from 'clsx';
 import api from '@/lib/api';
 import { useNavigate } from 'react-router-dom';
 
-const QUESTIONS = [
+const POOL_QUESTIONS = [
     {
         id: 1,
         question: "Theo quan điểm của Chủ nghĩa duy vật biện chứng, yếu tố nào quyết định ý thức?",
@@ -15,7 +15,7 @@ const QUESTIONS = [
             "C. Thượng đế",
             "D. Tinh thần tuyệt đối"
         ],
-        correct: 1, // Index of correct option (B)
+        correct: 1, // B
         explanation: "Chủ nghĩa duy vật biện chứng khẳng định: Vật chất có trước, ý thức có sau, vật chất quyết định ý thức."
     },
     {
@@ -65,10 +65,71 @@ const QUESTIONS = [
         ],
         correct: 1, // B
         explanation: "Hàng hóa là sự thống nhất biện chứng của hai thuộc tính: Giá trị sử dụng và Giá trị."
+    },
+    {
+        id: 6,
+        question: "Mối quan hệ giữa vật chất và ý thức là mối quan hệ như thế nào?",
+        options: [
+            "A. Một chiều: Vật chất quyết định ý thức",
+            "B. Một chiều: Ý thức quyết định vật chất",
+            "C. Biện chứng: Vật chất quyết định ý thức, ý thức tác động trở lại vật chất",
+            "D. Độc lập, không quan hệ với nhau"
+        ],
+        correct: 2,
+        explanation: "Vật chất quyết định nguồn gốc và nội dung của ý thức, nhưng ý thức có tính độc lập tương đối và tác động trở lại vật chất."
+    },
+    {
+        id: 7,
+        question: "Thực tiễn là gì?",
+        options: [
+            "A. Hoạt động tinh thần của con người",
+            "B. Hoạt động vật chất có mục đích, mang tính lịch sử - xã hội",
+            "C. Hoạt động bản năng của loài người",
+            "D. Sự suy ngẫm về thế giới"
+        ],
+        correct: 1,
+        explanation: "Thực tiễn là toàn bộ hoạt động vật chất có mục đích, mang tính lịch sử - xã hội của con người nhằm cải biến tự nhiên và xã hội."
+    },
+    {
+        id: 8,
+        question: "Hình thái kinh tế - xã hội được cấu thành từ những yếu tố nào?",
+        options: [
+            "A. Lực lượng sản xuất, Quan hệ sản xuất, Kiến trúc thượng tầng",
+            "B. Cơ sở hạ tầng và Kiến trúc thượng tầng",
+            "C. Giai cấp thống trị và giai cấp bị trị",
+            "D. Kinh tế và Chính trị"
+        ],
+        correct: 0,
+        explanation: "Cấu trúc hình thái KT-XH gồm: Lực lượng sản xuất, Quan hệ sản xuất (Cơ sở hạ tầng), và Kiến trúc thượng tầng."
+    },
+    {
+        id: 9,
+        question: "Giai cấp công nhân là giai cấp đại biểu cho cái gì?",
+        options: [
+            "A. Nền sản xuất thủ công nghiệp",
+            "B. Phương thức sản xuất tiên tiến",
+            "C. Lợi ích của giai cấp tư sản",
+            "D. Truyền thống văn hóa dân tộc"
+        ],
+        correct: 1,
+        explanation: "Giai cấp công nhân đại biểu cho phương thức sản xuất tiên tiến, gắn liền với nền công nghiệp hiện đại."
+    },
+    {
+        id: 10,
+        question: "Bản chất của nhà nước là gì?",
+        options: [
+            "A. Cơ quan quản lý xã hội vì lợi ích chung",
+            "B. Công cụ thống trị của giai cấp này đối với giai cấp khác",
+            "C. Tổ chức trọng tài đứng giữa các giai cấp",
+            "D. Biểu tượng của sự đoàn kết dân tộc"
+        ],
+        correct: 1,
+        explanation: "Theo chủ nghĩa Mác-Lênin, nhà nước là bộ máy dùng để duy trì sự thống trị của giai cấp này đối với giai cấp khác."
     }
 ];
 
 export default function Quiz() {
+    const [questions, setQuestions] = useState<typeof POOL_QUESTIONS>([]);
     const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
     const [isAnswered, setIsAnswered] = useState(false);
@@ -77,18 +138,38 @@ export default function Quiz() {
     const navigate = useNavigate();
     const [canTakeQuiz, setCanTakeQuiz] = useState(true);
 
-    const currentQuestion = QUESTIONS[currentQuestionIdx];
+    const currentQuestion = questions[currentQuestionIdx];
 
     useEffect(() => {
-        const checkStatus = async () => {
+        const initQuiz = async () => {
+            // 1. Check status
             try {
-                const res = await api.get('/quiz/status');
-                setCanTakeQuiz(res.data.can_take_quiz);
+                const statusRes = await api.get('/quiz/status');
+                setCanTakeQuiz(statusRes.data.can_take_quiz);
+                
+                if (!statusRes.data.can_take_quiz) return;
+
+                // 2. Fetch AI questions
+                try {
+                    const quizRes = await api.get('/quiz/generate');
+                    if (quizRes.data.questions && quizRes.data.questions.length > 0) {
+                        setQuestions(quizRes.data.questions);
+                    } else {
+                        // Fallback
+                        const shuffled = [...POOL_QUESTIONS].sort(() => 0.5 - Math.random());
+                        setQuestions(shuffled.slice(0, 5));
+                    }
+                } catch (e) {
+                    console.error("Failed to generate quiz, using fallback", e);
+                    const shuffled = [...POOL_QUESTIONS].sort(() => 0.5 - Math.random());
+                    setQuestions(shuffled.slice(0, 5));
+                }
+
             } catch (error) {
                 console.error("Failed to check quiz status", error);
             }
         };
-        checkStatus();
+        initQuiz();
     }, []);
 
     const handleOptionSelect = (idx: number) => {
@@ -96,28 +177,32 @@ export default function Quiz() {
         setSelectedOption(idx);
     };
 
-    if (!canTakeQuiz && !showResult) {
+    if ((!canTakeQuiz && !showResult) || questions.length === 0) {
         return (
             <div className="flex h-full bg-gray-50 items-center justify-center font-sans">
-                <motion.div 
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full text-center"
-                >
-                    <div className="bg-soviet-red-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <CheckCircle className="h-12 w-12 text-soviet-red-600" />
-                    </div>
-                    <h2 className="text-2xl font-serif font-bold text-gray-900 mb-2">Đã hoàn thành!</h2>
-                    <p className="text-gray-600 mb-6">Bạn đã hoàn thành bài trắc nghiệm của ngày hôm nay. Hãy quay lại vào ngày mai nhé!</p>
-                    
-                    <button 
-                        onClick={() => navigate('/leaderboard')}
-                        className="w-full py-3 bg-soviet-red-700 text-white rounded-xl font-medium hover:bg-soviet-red-800 transition-colors flex items-center justify-center"
+                {questions.length === 0 ? (
+                    <div className="animate-pulse text-soviet-red-700">Đang tải câu hỏi...</div>
+                ) : (
+                    <motion.div 
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full text-center"
                     >
-                        <Trophy className="mr-2 h-5 w-5" />
-                        Xem Bảng xếp hạng
-                    </button>
-                </motion.div>
+                        <div className="bg-soviet-red-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <CheckCircle className="h-12 w-12 text-soviet-red-600" />
+                        </div>
+                        <h2 className="text-2xl font-serif font-bold text-gray-900 mb-2">Đã hoàn thành!</h2>
+                        <p className="text-gray-600 mb-6">Bạn đã hoàn thành bài trắc nghiệm của ngày hôm nay. Hãy quay lại vào ngày mai nhé!</p>
+                        
+                        <button 
+                            onClick={() => navigate('/leaderboard')}
+                            className="w-full py-3 bg-soviet-red-700 text-white rounded-xl font-medium hover:bg-soviet-red-800 transition-colors flex items-center justify-center"
+                        >
+                            <Trophy className="mr-2 h-5 w-5" />
+                            Xem Bảng xếp hạng
+                        </button>
+                    </motion.div>
+                )}
             </div>
         );
     }
@@ -130,14 +215,11 @@ export default function Quiz() {
         
         if (isCorrect) {
             setScore(score + 1);
-            // We accumulate score locally and submit only at the end to avoid "Already taken" errors
-            // or we could implement a more complex backend logic.
-            // For now, let's keep it simple: we DO NOT submit per question anymore.
         }
     };
 
     const handleNext = () => {
-        if (currentQuestionIdx < QUESTIONS.length - 1) {
+        if (currentQuestionIdx < questions.length - 1) {
             setCurrentQuestionIdx(currentQuestionIdx + 1);
             setSelectedOption(null);
             setIsAnswered(false);
@@ -149,44 +231,20 @@ export default function Quiz() {
     const finishQuiz = async () => {
         setShowResult(true);
         try {
-            // Submit total score at the end
-            // Note: backend might expect {score: increment_value} or {score: total}.
-            // Looking at backend: new_score = current_score + submission.score
-            // So we should submit the TOTAL accumulated score for this session?
-            // Wait, if backend ADDS, then if I send 5, it adds 5.
-            // If I sent 1, 1, 1 before, it added 1, 1, 1.
-            // Now I am NOT sending per question. So I send `score` at the end.
-            // BUT `score` state is not updated immediately inside handleSubmit? 
-            // `setScore(score + 1)` schedules update. 
-            // So in `finishQuiz` (called by handleNext which is manual), `score` IS updated.
-            // Exception: The LAST question.
-            // If I answer last question correct -> handleSubmit -> setScore -> isAnswered=true.
-            // Then user clicks "Xem kết quả" (was handleNext).
-            // So score is ready.
-            
             if (score > 0 || (selectedOption === currentQuestion.correct)) {
-                 // Adjust score if the last answer was correct and just submitted?
-                 // No, `score` state should be correct when `finishQuiz` runs.
-                 // Actually, `handleSubmit` updates `score`.
-                 // User sees "Next" or "See Result".
-                 // User clicks "See Result" -> `handleNext` -> `finishQuiz`.
-                 // So `score` is up to date.
-                 
-                 // However, we need to be careful. The last question's point is added to `score`.
-                 // Let's pass the final score to submit.
-                 
                  await api.post('/quiz/submit', { score: score });
             }
         } catch (error: any) {
             console.error("Failed to submit score", error);
-            if (error.response?.status === 400) {
-                 // Already taken
-                 // We can show a toast or just ignore since we show the result screen anyway.
-            }
         }
     }
 
     const handleRestart = () => {
+        // Shuffle again on restart? Or just reset?
+        // Let's shuffle again to keep it interesting
+        const shuffled = [...POOL_QUESTIONS].sort(() => 0.5 - Math.random());
+        setQuestions(shuffled.slice(0, 5));
+        
         setCurrentQuestionIdx(0);
         setSelectedOption(null);
         setIsAnswered(false);
@@ -209,7 +267,7 @@ export default function Quiz() {
                     <p className="text-gray-600 mb-6">Bạn đã trả lời đúng</p>
                     
                     <div className="text-5xl font-bold text-soviet-red-700 mb-8">
-                        {score} <span className="text-2xl text-gray-400">/ {QUESTIONS.length}</span>
+                        {score} <span className="text-2xl text-gray-400">/ {questions.length}</span>
                     </div>
 
                     <div className="space-y-3">
@@ -247,12 +305,12 @@ export default function Quiz() {
                         <motion.div 
                             className="bg-soviet-red-600 h-2 rounded-full"
                             initial={{ width: 0 }}
-                            animate={{ width: `${((currentQuestionIdx + 1) / QUESTIONS.length) * 100}%` }}
+                            animate={{ width: `${((currentQuestionIdx + 1) / questions.length) * 100}%` }}
                         />
                     </div>
                     <div className="flex justify-between text-xs text-gray-500 mt-2 font-medium">
                         <span>Câu {currentQuestionIdx + 1}</span>
-                        <span>{QUESTIONS.length} câu hỏi</span>
+                        <span>{questions.length} câu hỏi</span>
                     </div>
                 </div>
 
@@ -333,7 +391,7 @@ export default function Quiz() {
                             onClick={handleNext}
                             className="px-8 py-3 bg-gray-900 text-white rounded-xl font-medium shadow-md hover:bg-black transition-all flex items-center"
                         >
-                            {currentQuestionIdx < QUESTIONS.length - 1 ? "Câu tiếp theo" : "Xem kết quả"}
+                            {currentQuestionIdx < questions.length - 1 ? "Câu tiếp theo" : "Xem kết quả"}
                             <ArrowRight className="ml-2 h-5 w-5" />
                         </button>
                     )}

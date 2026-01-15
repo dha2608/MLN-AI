@@ -7,7 +7,7 @@ import { useEffect, useState, useRef } from 'react';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) {
   const { user, logout } = useAuthStore();
   const location = useLocation();
   const navigate = useNavigate();
@@ -15,6 +15,11 @@ export default function Sidebar() {
   const [editingChatId, setEditingChatId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const editInputRef = useRef<HTMLInputElement>(null);
+
+  // Close sidebar on route change (mobile)
+  useEffect(() => {
+    if (onClose) onClose();
+  }, [location.pathname]);
 
   const fetchRecentChats = async () => {
       try {
@@ -83,9 +88,13 @@ export default function Sidebar() {
   ];
 
   return (
-    <div className="flex flex-col h-full w-72 bg-white border-r border-gray-200 shadow-lg z-10 font-sans">
+    <div className={clsx(
+        "flex flex-col h-full w-72 bg-white border-r border-gray-200 shadow-lg z-40 font-sans transition-transform duration-300 ease-in-out",
+        "fixed inset-y-0 left-0 lg:static lg:translate-x-0",
+        isOpen ? "translate-x-0" : "-translate-x-full"
+    )}>
       {/* Header */}
-      <div className="p-6 border-b border-gray-100 bg-soviet-red-700">
+      <div className="p-6 border-b border-gray-100 bg-soviet-red-700 relative">
         <div className="flex items-center space-x-3 text-white">
           <div className="p-2 bg-soviet-gold-500 rounded-lg shadow-md">
             <BookOpen className="h-6 w-6 text-white" />
@@ -95,6 +104,13 @@ export default function Sidebar() {
              <p className="text-xs text-soviet-red-100 opacity-80">Trợ lý học tập AI</p>
           </div>
         </div>
+        {/* Close button for mobile */}
+        <button 
+            onClick={onClose}
+            className="absolute top-4 right-4 text-white/80 hover:text-white lg:hidden"
+        >
+            <X className="h-6 w-6" />
+        </button>
       </div>
 
       {/* New Chat Button */}
@@ -216,9 +232,10 @@ export default function Sidebar() {
           </div>
           <button
             onClick={logout}
-            className="p-2 text-gray-400 hover:text-soviet-red-600 transition-colors rounded-full hover:bg-white hover:shadow-sm"
+            className="flex items-center space-x-2 px-3 py-2 text-gray-500 hover:text-soviet-red-600 transition-colors rounded-lg hover:bg-white hover:shadow-sm ml-auto"
             title="Đăng xuất"
           >
+            <span className="text-xs font-medium lg:hidden">Đăng xuất</span>
             <LogOut className="h-5 w-5" />
           </button>
         </div>

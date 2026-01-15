@@ -11,6 +11,7 @@ import Statistics from "@/pages/Statistics";
 import Library from "@/pages/Library";
 import Quiz from "@/pages/Quiz";
 import Leaderboard from "@/pages/Leaderboard";
+import Social from "@/pages/Social";
 import Layout from "@/components/Layout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
@@ -54,6 +55,7 @@ export default function App() {
           <Route path="/library" element={<Library />} />
           <Route path="/quiz" element={<Quiz />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/social" element={<Social />} />
         </Route>
         
         <Route path="*" element={<Navigate to="/" replace />} />

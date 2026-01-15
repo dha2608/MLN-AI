@@ -30,6 +30,7 @@ app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
 app.include_router(stats.router, prefix="/api/statistics", tags=["statistics"])
 app.include_router(user.router, prefix="/api/user", tags=["user"])
 app.include_router(quiz.router, prefix="/api/quiz", tags=["quiz"])
+app.include_router(social.router, prefix="/api/social", tags=["social"])
 
 @app.get("/")
 def read_root():

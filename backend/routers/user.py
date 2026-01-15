@@ -83,11 +83,17 @@ async def update_profile(data: UserUpdate, user=Depends(get_current_user)):
 
 @router.post("/heartbeat")
 async def send_heartbeat(user=Depends(get_current_user)):
+    if not user:
+        return {"status": "ignored", "reason": "unauthorized"}
+        
     try:
         # Update last_seen
-        supabase.table("users").update({"last_seen": datetime.now().isoformat()}).eq("id", user.id).execute()
-        return {"status": "online"}
+        # Use ISO format with timezone
+        now = datetime.now().isoformat()
+        res = supabase.table("users").update({"last_seen": now}).eq("id", user.id).execute()
+        return {"status": "online", "timestamp": now}
     except Exception as e:
+        log_error("Heartbeat error", e)
         # Log silently, don't crash frontend loop
         return {"status": "error"}
 
@@ -107,6 +113,14 @@ async def get_community_fallback():
 
 @router.get("/community")
 async def get_community_members(user=Depends(get_current_user)):
+    # Soft Auth: user might be None
+    user_id = user.id if user else "guest"
+    
+    try:
+        log_info(f"Community fetch requested by user: {user_id}")
+    except:
+        pass
+        
     try:
         # First, try to get full details including online status
         # Use order by last_seen to show active users first

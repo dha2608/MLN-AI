@@ -10,6 +10,7 @@ import Profile from "@/pages/Profile";
 import Statistics from "@/pages/Statistics";
 import Library from "@/pages/Library";
 import Quiz from "@/pages/Quiz";
+import QuizPvP from "@/pages/QuizPvP";
 import Leaderboard from "@/pages/Leaderboard";
 import Social from "@/pages/Social";
 import Layout from "@/components/Layout";

@@ -97,15 +97,18 @@ async def get_community_members(user=Depends(get_current_user)):
         # Get all users, ordered by last_seen (most recent first)
         # We select specific columns to avoid errors if some columns are missing
         # Also, if last_seen is missing, it will just be null, which is fine
-        res = supabase.table("users").select("id, name, avatar_url, last_seen, bio, interests").order("created_at", desc=True).limit(50).execute()
-        return res.data
-    except Exception as e:
-        # Fallback if specific columns fail (e.g. last_seen not created yet)
         try:
+             res = supabase.table("users").select("id, name, avatar_url, last_seen, bio, interests").order("created_at", desc=True).limit(50).execute()
+             return res.data
+        except Exception as inner_e:
+             # Fallback if specific columns fail (e.g. last_seen not created yet)
+             log_error("Fetch community full error, trying fallback", inner_e)
              res = supabase.table("users").select("id, name, avatar_url").limit(50).execute()
              return res.data
-        except:
-            raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        log_error("Fetch community critical error", e)
+        # Even if DB fails completely, return empty list instead of 500 to keep UI alive
+        return []
 
 @router.post("/block")
 async def block_user(req: BlockUserRequest, user=Depends(get_current_user)):

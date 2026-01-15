@@ -70,6 +70,19 @@ export default function Community() {
         }
     };
 
+    const handleAddFriend = async (userId: string) => {
+        try {
+            await api.post('/social/friends/request', { target_user_id: userId });
+            toast.success("Đã gửi lời mời kết bạn");
+        } catch (error: any) {
+            toast.error(error.response?.data?.detail || "Gửi thất bại");
+        }
+    };
+
+    const handleMessage = (userId: string) => {
+        navigate(`/social?chat=${userId}`);
+    };
+
     const onlineCount = users.filter(u => isUserOnline(u.last_seen)).length;
 
     return (

@@ -1,81 +1,117 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, Body
 from backend.dependencies import get_current_user
 from backend.database import supabase
+from pydantic import BaseModel
+from typing import Optional, List
+from datetime import datetime
 
 router = APIRouter()
+
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    avatar_url: Optional[str] = None
+    bio: Optional[str] = None
+    interests: Optional[List[str]] = None
+    allow_stranger_messages: Optional[bool] = None
+
+class HeartbeatRequest(BaseModel):
+    pass
+
+class BlockUserRequest(BaseModel):
+    target_id: str
 
 @router.get("/profile")
 async def get_profile(user=Depends(get_current_user)):
     try:
-        # Get from public.users table
-        response = supabase.table("users").select("*").eq("id", user.id).execute()
-        if response.data:
-            user_data = response.data[0]
-            # Sync with Supabase Auth metadata if public.users is outdated or empty
-            # But primarily we trust the database record. 
-            # If avatar is missing in DB but exists in Auth (Google login), we could sync it here.
-            if not user_data.get('avatar_url') and user.user_metadata.get('avatar_url'):
-                 # Auto-update avatar from Google
-                 avatar = user.user_metadata.get('avatar_url')
-                 supabase.table("users").update({"avatar_url": avatar}).eq("id", user.id).execute()
-                 user_data['avatar_url'] = avatar
-            
-            if not user_data.get('name') and user.user_metadata.get('full_name'):
-                 name = user.user_metadata.get('full_name')
-                 supabase.table("users").update({"name": name}).eq("id", user.id).execute()
-                 user_data['name'] = name
-
-            return user_data
-            
-        # If no record in public.users (rare if trigger works, but possible)
-        # Create one from Auth data
-        new_user = {
+        # Fetch from public.users to get custom fields like bio, interests
+        res = supabase.table("users").select("*").eq("id", user.id).execute()
+        
+        user_data = {
             "id": user.id,
             "email": user.email,
-            "name": user.user_metadata.get('full_name') or user.user_metadata.get('name') or user.email.split('@')[0],
-            "avatar_url": user.user_metadata.get('avatar_url')
+            "name": user.user_metadata.get("full_name", user.email),
+            "avatar_url": user.user_metadata.get("avatar_url"),
+            "created_at": user.created_at,
+            # Defaults
+            "bio": "",
+            "interests": [],
+            "allow_stranger_messages": True
         }
-        try:
-            supabase.table("users").insert(new_user).execute()
-            return new_user
-        except:
-            return {"email": user.email, "id": user.id} # Fallback
+        
+        if res.data:
+            db_user = res.data[0]
+            user_data.update({
+                "name": db_user.get("name") or user_data["name"],
+                "avatar_url": db_user.get("avatar_url") or user_data["avatar_url"],
+                "bio": db_user.get("bio"),
+                "interests": db_user.get("interests") or [],
+                "allow_stranger_messages": db_user.get("allow_stranger_messages", True)
+            })
             
+        return user_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-from pydantic import BaseModel
-
-class UserUpdate(BaseModel):
-    name: str
 
 @router.put("/profile")
-async def update_profile(user_data: UserUpdate, user=Depends(get_current_user)):
+async def update_profile(data: UserUpdate, user=Depends(get_current_user)):
     try:
-        supabase.table("users").update({"name": user_data.name}).eq("id", user.id).execute()
-        return {"message": "Profile updated successfully"}
+        update_data = {k: v for k, v in data.dict().items() if v is not None}
+        if not update_data:
+            return {"message": "No changes"}
+
+        # Upsert into public.users
+        update_data["id"] = user.id
+        update_data["email"] = user.email # Ensure email is set on insert
+        
+        res = supabase.table("users").upsert(update_data).execute()
+        return res.data[0]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/avatar")
-async def upload_avatar(file: UploadFile = File(...), user=Depends(get_current_user)):
+@router.post("/heartbeat")
+async def send_heartbeat(user=Depends(get_current_user)):
     try:
-        file_content = await file.read()
-        file_path = f"avatars/{user.id}/{file.filename}"
-        
-        # Upload to Supabase Storage
-        supabase.storage.from_("avatars").upload(
-            file_path,
-            file_content,
-            {"content-type": file.content_type, "upsert": "true"}
-        )
-        
-        # Get Public URL
-        public_url = supabase.storage.from_("avatars").get_public_url(file_path)
-        
-        # Update User Profile
-        supabase.table("users").update({"avatar_url": public_url}).eq("id", user.id).execute()
-        
-        return {"avatar_url": public_url}
+        # Update last_seen
+        supabase.table("users").update({"last_seen": datetime.now().isoformat()}).eq("id", user.id).execute()
+        return {"status": "online"}
+    except Exception as e:
+        # Log silently, don't crash frontend loop
+        return {"status": "error"}
+
+@router.get("/community")
+async def get_community_members(user=Depends(get_current_user)):
+    try:
+        # Get all users, ordered by last_seen (most recent first)
+        # Limit to 50 for performance
+        res = supabase.table("users").select("id, name, avatar_url, last_seen, bio, interests").order("last_seen", desc=True).limit(50).execute()
+        return res.data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/block")
+async def block_user(req: BlockUserRequest, user=Depends(get_current_user)):
+    try:
+        if req.target_id == user.id:
+            raise HTTPException(status_code=400, detail: "Cannot block yourself")
+            
+        supabase.table("blocked_users").insert({
+            "user_id": user.id,
+            "blocked_user_id": req.target_id
+        }).execute()
+        
+        # Also remove friendship if exists
+        supabase.table("friendships").delete().or_(
+            f"and(user_id.eq.{user.id},friend_id.eq.{req.target_id}),and(user_id.eq.{req.target_id},friend_id.eq.{user.id})"
+        ).execute()
+        
+        return {"message": "User blocked"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/blocked")
+async def get_blocked_users(user=Depends(get_current_user)):
+    try:
+        res = supabase.table("blocked_users").select("blocked_user_id, users!blocked_user_id(name, avatar_url)").eq("user_id", user.id).execute()
+        return res.data
+    except Exception as e:
+        return []

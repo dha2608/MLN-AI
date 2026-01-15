@@ -1,146 +1,307 @@
-import { useForm } from 'react-hook-form';
 import { useAuthStore } from '@/store/authStore';
-import { Camera, Lock } from 'lucide-react';
-import { useState } from 'react';
-import api, { supabase } from '@/lib/api';
+import { useState, useRef, useEffect } from 'react';
+import api from '@/lib/api';
 import toast from 'react-hot-toast';
+import { Camera, Edit2, Save, X, Shield, Lock, Activity } from 'lucide-react';
+import { isUserOnline } from '@/hooks/useOnlineStatus';
 
 export default function Profile() {
-  const { user, checkAuth } = useAuthStore();
-  const { register, handleSubmit } = useForm({
-    defaultValues: {
-      name: user?.name,
-      email: user?.email,
-    }
-  });
-  const [uploading, setUploading] = useState(false);
-  const [passwords, setPasswords] = useState({ newPassword: '', confirmPassword: '' });
-  const [updatingPassword, setUpdatingPassword] = useState(false);
+  const { user, setSession } = useAuthStore();
+  const [isEditing, setIsEditing] = useState(false);
+  const [name, setName] = useState(user?.name || '');
+  const [bio, setBio] = useState('');
+  const [interests, setInterests] = useState<string[]>([]);
+  const [newInterest, setNewInterest] = useState('');
+  const [allowStrangers, setAllowStrangers] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [fullProfile, setFullProfile] = useState<any>(null);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const onSubmit = async (data: any) => {
+  useEffect(() => {
+      fetchProfile();
+  }, [user?.id]);
+
+  const fetchProfile = async () => {
+      try {
+          const res = await api.get('/user/profile');
+          const data = res.data;
+          setFullProfile(data);
+          setName(data.name || '');
+          setBio(data.bio || '');
+          setInterests(data.interests || []);
+          setAllowStrangers(data.allow_stranger_messages ?? true);
+      } catch (error) {
+          console.error("Fetch profile error", error);
+      }
+  };
+
+  const handleUpdateProfile = async () => {
+    setLoading(true);
     try {
-      await api.put('/user/profile', { name: data.name });
-      await checkAuth(); // Refresh user data
-      toast.success('Thông tin đã được cập nhật thành công');
-    } catch (error: any) {
-      console.error(error);
-      toast.error('Cập nhật thất bại: ' + (error.response?.data?.detail || 'Lỗi không xác định'));
+      await api.put('/user/profile', { 
+          name,
+          bio,
+          interests,
+          allow_stranger_messages: allowStrangers
+      });
+      
+      // Update local store
+      if (user) {
+          setSession({
+              access_token: localStorage.getItem('token'),
+              user: { ...user, user_metadata: { ...user, name, full_name: name } }
+          });
+      }
+      
+      toast.success('Cập nhật hồ sơ thành công!');
+      setIsEditing(false);
+      fetchProfile();
+    } catch (error) {
+      toast.error('Có lỗi xảy ra khi cập nhật hồ sơ');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handlePasswordChange = async (e: React.FormEvent) => {
+  const handleAddInterest = (e: React.FormEvent) => {
       e.preventDefault();
-      if (passwords.newPassword !== passwords.confirmPassword) {
-          toast.error("Mật khẩu xác nhận không khớp");
-          return;
+      if (newInterest.trim() && !interests.includes(newInterest.trim())) {
+          setInterests([...interests, newInterest.trim()]);
+          setNewInterest('');
       }
-      if (passwords.newPassword.length < 6) {
-          toast.error("Mật khẩu phải có ít nhất 6 ký tự");
-          return;
-      }
+  };
 
-      setUpdatingPassword(true);
-      try {
-          const { error } = await supabase.auth.updateUser({ password: passwords.newPassword });
-          if (error) throw error;
-          toast.success("Đổi mật khẩu thành công");
-          setPasswords({ newPassword: '', confirmPassword: '' });
-      } catch (error: any) {
-          toast.error("Đổi mật khẩu thất bại: " + error.message);
-      } finally {
-          setUpdatingPassword(false);
-      }
-  }
+  const removeInterest = (tag: string) => {
+      setInterests(interests.filter(i => i !== tag));
+  };
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    
-    const file = e.target.files[0];
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
     const formData = new FormData();
     formData.append('file', file);
 
-    setUploading(true);
+    const toastId = toast.loading('Đang tải ảnh lên...');
     try {
-        await api.post('/user/avatar', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            }
-        });
-        await checkAuth(); // Refresh user data
-        toast.success('Avatar updated successfully');
+      const res = await api.post('/user/avatar', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      if (user) {
+          // Force refresh or update local state
+          window.location.reload(); 
+      }
+      toast.success('Cập nhật ảnh đại diện thành công!', { id: toastId });
     } catch (error) {
-        toast.error('Failed to upload avatar');
-    } finally {
-        setUploading(false);
+      toast.error('Lỗi khi tải ảnh lên', { id: toastId });
     }
   };
 
   return (
-    <div className="max-w-3xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-8">Hồ sơ cá nhân</h1>
-      
-      <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-        <div className="px-4 py-5 sm:p-6">
-          <div className="flex flex-col items-center mb-6">
-            <div className="relative">
-              <div className="h-32 w-32 rounded-full overflow-hidden bg-gray-100 border-4 border-red-500">
-                {user?.avatar_url ? (
-                    <img src={user.avatar_url} alt="Avatar" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        {/* Cover / Header */}
+        <div className="h-32 bg-gradient-to-r from-soviet-red-700 to-soviet-red-900 relative">
+            <div className="absolute top-4 right-4 flex space-x-2">
+                {!isEditing ? (
+                    <button 
+                        onClick={() => setIsEditing(true)}
+                        className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-medium backdrop-blur-sm transition-all flex items-center"
+                    >
+                        <Edit2 className="h-4 w-4 mr-2" />
+                        Chỉnh sửa
+                    </button>
                 ) : (
-                    <div className="h-full w-full flex items-center justify-center text-4xl text-gray-400 font-bold">
-                        {user?.name?.charAt(0).toUpperCase()}
-                    </div>
+                    <>
+                        <button 
+                            onClick={() => setIsEditing(false)}
+                            className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-medium backdrop-blur-sm transition-all"
+                        >
+                            Hủy
+                        </button>
+                        <button 
+                            onClick={handleUpdateProfile}
+                            disabled={loading}
+                            className="bg-white text-soviet-red-700 px-4 py-2 rounded-lg text-sm font-medium shadow-sm hover:bg-gray-50 transition-all flex items-center"
+                        >
+                            <Save className="h-4 w-4 mr-2" />
+                            Lưu
+                        </button>
+                    </>
                 )}
-              </div>
-              <label
-                htmlFor="avatar-upload"
-                className="absolute bottom-0 right-0 bg-white rounded-full p-2 shadow-lg cursor-pointer hover:bg-gray-50 border border-gray-200"
-              >
-                <Camera className="h-5 w-5 text-gray-600" />
-                <input
-                    id="avatar-upload"
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleAvatarUpload}
-                    disabled={uploading}
-                />
-              </label>
             </div>
-            {uploading && <p className="text-sm text-gray-500 mt-2">Uploading...</p>}
-          </div>
+        </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Email</label>
-              <input
-                type="email"
-                disabled
-                {...register('email')}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-gray-50 text-gray-500 sm:text-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Họ tên</label>
-              <input
-                type="text"
-                {...register('name')}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
-              />
+        <div className="px-8 pb-8">
+            <div className="relative -mt-16 mb-6 flex justify-between items-end">
+                <div className="relative group">
+                    <div className="h-32 w-32 rounded-full border-4 border-white bg-gray-200 shadow-md overflow-hidden">
+                        {user?.avatar_url ? (
+                            <img src={user.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
+                        ) : (
+                            <div className="h-full w-full flex items-center justify-center text-4xl font-bold text-gray-400">
+                                {user?.name?.charAt(0).toUpperCase()}
+                            </div>
+                        )}
+                    </div>
+                    <button 
+                        onClick={handleAvatarClick}
+                        className="absolute bottom-0 right-0 p-2 bg-gray-900/70 text-white rounded-full hover:bg-gray-900 transition-colors shadow-sm opacity-0 group-hover:opacity-100"
+                    >
+                        <Camera className="h-4 w-4" />
+                    </button>
+                    <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        onChange={handleFileChange} 
+                        className="hidden" 
+                        accept="image/*"
+                    />
+                </div>
             </div>
 
-            <div className="flex justify-end">
-              <button
-                type="submit"
-                className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-              >
-                Lưu thay đổi
-              </button>
+            {/* Main Info */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {/* Left Column: Basic Info */}
+                <div className="md:col-span-2 space-y-6">
+                    <div>
+                        {isEditing ? (
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Tên hiển thị</label>
+                                    <input 
+                                        type="text" 
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-soviet-red-500 focus:outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Giới thiệu bản thân (Bio)</label>
+                                    <textarea 
+                                        value={bio}
+                                        onChange={(e) => setBio(e.target.value)}
+                                        rows={3}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-soviet-red-500 focus:outline-none"
+                                        placeholder="Chia sẻ đôi chút về bạn..."
+                                    />
+                                </div>
+                            </div>
+                        ) : (
+                            <div>
+                                <h1 className="text-2xl font-bold text-gray-900 mb-1">{name}</h1>
+                                <p className="text-gray-500 mb-4">{user?.email}</p>
+                                {bio && (
+                                    <p className="text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                        {bio}
+                                    </p>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Interests */}
+                    <div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center">
+                            <Activity className="h-5 w-5 mr-2 text-soviet-red-600" />
+                            Sở thích & Mối quan tâm
+                        </h3>
+                        {isEditing ? (
+                            <div className="space-y-3">
+                                <div className="flex flex-wrap gap-2">
+                                    {interests.map((tag, idx) => (
+                                        <span key={idx} className="bg-soviet-red-50 text-soviet-red-700 px-3 py-1 rounded-full text-sm font-medium flex items-center">
+                                            #{tag}
+                                            <button onClick={() => removeInterest(tag)} className="ml-2 hover:text-red-600"><X className="h-3 w-3" /></button>
+                                        </span>
+                                    ))}
+                                </div>
+                                <form onSubmit={handleAddInterest} className="flex gap-2">
+                                    <input 
+                                        type="text" 
+                                        value={newInterest}
+                                        onChange={(e) => setNewInterest(e.target.value)}
+                                        placeholder="Thêm sở thích (VD: Triết học, Lịch sử...)"
+                                        className="flex-1 px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-soviet-red-500 focus:outline-none text-sm"
+                                    />
+                                    <button type="submit" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-medium transition-colors">Thêm</button>
+                                </form>
+                            </div>
+                        ) : (
+                            <div className="flex flex-wrap gap-2">
+                                {interests.length > 0 ? interests.map((tag, idx) => (
+                                    <span key={idx} className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">
+                                        #{tag}
+                                    </span>
+                                )) : (
+                                    <span className="text-gray-400 italic text-sm">Chưa cập nhật sở thích</span>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Right Column: Settings & Status */}
+                <div className="space-y-6">
+                    {/* Status Card */}
+                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                        <h3 className="font-bold text-gray-900 mb-3 text-sm uppercase tracking-wider">Trạng thái</h3>
+                        <div className="flex items-center space-x-2">
+                            <span className="w-3 h-3 rounded-full bg-green-500"></span>
+                            <span className="text-gray-700 font-medium">Đang hoạt động</span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                            Lần cuối: {fullProfile?.last_seen ? new Date(fullProfile.last_seen).toLocaleString('vi-VN') : 'Vừa xong'}
+                        </p>
+                    </div>
+
+                    {/* Privacy Settings */}
+                    <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+                        <h3 className="font-bold text-gray-900 mb-4 flex items-center text-sm uppercase tracking-wider">
+                            <Shield className="h-4 w-4 mr-2 text-blue-600" />
+                            Quyền riêng tư
+                        </h3>
+                        
+                        <div className="space-y-4">
+                            <div className="flex items-start justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-900">Nhận tin nhắn từ người lạ</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">Cho phép người chưa kết bạn nhắn tin cho bạn.</p>
+                                </div>
+                                {isEditing ? (
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input 
+                                            type="checkbox" 
+                                            className="sr-only peer"
+                                            checked={allowStrangers}
+                                            onChange={(e) => setAllowStrangers(e.target.checked)}
+                                        />
+                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                    </label>
+                                ) : (
+                                    <span className={clsx("text-xs font-bold px-2 py-1 rounded", allowStrangers ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}>
+                                        {allowStrangers ? "BẬT" : "TẮT"}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </form>
         </div>
       </div>
     </div>
   );
+}
+
+function clsx(...classes: any[]) {
+    return classes.filter(Boolean).join(' ');
 }

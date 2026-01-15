@@ -13,11 +13,14 @@ import Quiz from "@/pages/Quiz";
 import QuizPvP from "@/pages/QuizPvP";
 import Leaderboard from "@/pages/Leaderboard";
 import Social from "@/pages/Social";
+import Community from "@/pages/Community";
 import Layout from "@/components/Layout";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 
 export default function App() {
   const { setSession, isAuthChecking } = useAuthStore();
+  useOnlineStatus(); // Activate heartbeat globally
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -58,6 +61,7 @@ export default function App() {
           <Route path="/quiz/pvp" element={<QuizPvP />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/social" element={<Social />} />
+          <Route path="/community" element={<Community />} />
         </Route>
         
         <Route path="*" element={<Navigate to="/" replace />} />

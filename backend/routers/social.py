@@ -157,6 +157,28 @@ async def get_messages(friend_id: str, user=Depends(get_current_user)):
 @router.post("/messages/send")
 async def send_social_message(msg: SendMessage, user=Depends(get_current_user)):
     try:
+        # Check privacy: Allow stranger messages?
+        receiver_settings = supabase.table("users").select("allow_stranger_messages").eq("id", msg.receiver_id).execute()
+        
+        is_allowed = True
+        if receiver_settings.data:
+            allow_strangers = receiver_settings.data[0].get('allow_stranger_messages', True)
+            if not allow_strangers:
+                # Check if friends
+                friendship = supabase.table("friendships").select("*").eq("status", "accepted").or_(
+                    f"and(user_id.eq.{user.id},friend_id.eq.{msg.receiver_id}),and(user_id.eq.{msg.receiver_id},friend_id.eq.{user.id})"
+                ).execute()
+                if not friendship.data:
+                    is_allowed = False
+        
+        # Check if blocked
+        blocked = supabase.table("blocked_users").select("*").eq("user_id", msg.receiver_id).eq("blocked_user_id", user.id).execute()
+        if blocked.data:
+            is_allowed = False
+            
+        if not is_allowed:
+            raise HTTPException(status_code=403, detail="Cannot send message to this user due to privacy settings")
+
         data = {
             "sender_id": user.id,
             "receiver_id": msg.receiver_id,
@@ -164,6 +186,8 @@ async def send_social_message(msg: SendMessage, user=Depends(get_current_user)):
         }
         res = supabase.table("messages_social").insert(data).execute()
         return res.data[0]
+    except HTTPException as he:
+        raise he
     except Exception as e:
         log_error("Send message error", e)
         raise HTTPException(status_code=500, detail=str(e))

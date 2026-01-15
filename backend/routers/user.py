@@ -92,7 +92,7 @@ async def get_community_members(user=Depends(get_current_user)):
 async def block_user(req: BlockUserRequest, user=Depends(get_current_user)):
     try:
         if req.target_id == user.id:
-            raise HTTPException(status_code=400, detail: "Cannot block yourself")
+            raise HTTPException(status_code=400, detail="Cannot block yourself")
             
         supabase.table("blocked_users").insert({
             "user_id": user.id,

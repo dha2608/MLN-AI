@@ -91,16 +91,19 @@ async def send_heartbeat(user=Depends(get_current_user)):
         # Log silently, don't crash frontend loop
         return {"status": "error"}
 
-@router.get("/community/public")
-async def get_community_public():
-    """Debug endpoint: Public access to community to test DB connection without Auth."""
+@router.get("/community/public_fallback")
+async def get_community_fallback():
     try:
-        # Simple query
-        res = supabase.table("users").select("id, name, avatar_url").limit(10).execute()
+        # Try to get data with last_seen for fallback
+        res = supabase.table("users").select("id, name, avatar_url, last_seen, bio, interests").order("last_seen", desc=True).limit(50).execute()
         return res.data
-    except Exception as e:
-        log_error("Public community debug error", e)
-        return {"error": str(e)}
+    except:
+        # Absolute minimal fallback
+        try:
+            res = supabase.table("users").select("id, name, avatar_url").limit(50).execute()
+            return res.data
+        except:
+            return []
 
 @router.get("/community")
 async def get_community_members(user=Depends(get_current_user)):

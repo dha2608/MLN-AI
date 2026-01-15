@@ -18,13 +18,48 @@ export default function Community() {
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const navigate = useNavigate();
 
+    // Debounce search term
     useEffect(() => {
-        fetchCommunity();
-    }, []);
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchTerm);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
+    // Re-fetch when debounced search changes
+    useEffect(() => {
+        if (debouncedSearch) {
+            handleSearch(debouncedSearch);
+        } else {
+            fetchCommunity();
+        }
+    }, [debouncedSearch]);
+
+    const handleSearch = async (query: string) => {
+        setLoading(true);
+        try {
+            const res = await api.get(`/user/search?query=${encodeURIComponent(query)}`);
+            // Standardize format
+            const formatted = res.data.map((u: any) => ({
+                ...u,
+                // Add defaults for missing fields in search result
+                last_seen: u.last_seen || null,
+                bio: u.bio || null,
+                interests: u.interests || []
+            }));
+            setUsers(formatted);
+        } catch (error) {
+            console.error("Search failed", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const fetchCommunity = async () => {
+        setLoading(true);
         try {
             const res = await api.get('/user/community');
             setUsers(res.data);
@@ -34,24 +69,6 @@ export default function Community() {
             setLoading(false);
         }
     };
-
-    const handleAddFriend = async (userId: string) => {
-        try {
-            await api.post('/social/friends/request', { target_user_id: userId });
-            toast.success("Đã gửi lời mời kết bạn");
-        } catch (error: any) {
-            toast.error(error.response?.data?.detail || "Gửi thất bại");
-        }
-    };
-
-    const handleMessage = (userId: string) => {
-        navigate(`/social?chat=${userId}`);
-    };
-
-    const filteredUsers = users.filter(u => 
-        u.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        u.bio?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
 
     const onlineCount = users.filter(u => isUserOnline(u.last_seen)).length;
 
@@ -84,7 +101,7 @@ export default function Community() {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredUsers.map(user => {
+                    {users.map(user => {
                         const isOnline = isUserOnline(user.last_seen);
                         return (
                             <div key={user.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col hover:shadow-md transition-shadow relative overflow-hidden">

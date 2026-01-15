@@ -95,11 +95,17 @@ async def send_heartbeat(user=Depends(get_current_user)):
 async def get_community_members(user=Depends(get_current_user)):
     try:
         # Get all users, ordered by last_seen (most recent first)
-        # Limit to 50 for performance
-        res = supabase.table("users").select("id, name, avatar_url, last_seen, bio, interests").order("last_seen", desc=True).limit(50).execute()
+        # We select specific columns to avoid errors if some columns are missing
+        # Also, if last_seen is missing, it will just be null, which is fine
+        res = supabase.table("users").select("id, name, avatar_url, last_seen, bio, interests").order("created_at", desc=True).limit(50).execute()
         return res.data
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        # Fallback if specific columns fail (e.g. last_seen not created yet)
+        try:
+             res = supabase.table("users").select("id, name, avatar_url").limit(50).execute()
+             return res.data
+        except:
+            raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/block")
 async def block_user(req: BlockUserRequest, user=Depends(get_current_user)):
@@ -125,6 +131,17 @@ async def block_user(req: BlockUserRequest, user=Depends(get_current_user)):
 async def get_blocked_users(user=Depends(get_current_user)):
     try:
         res = supabase.table("blocked_users").select("blocked_user_id, users!blocked_user_id(name, avatar_url)").eq("user_id", user.id).execute()
+        return res.data
+    except Exception as e:
+        return []
+
+@router.get("/users/search")
+async def search_users(query: str, user=Depends(get_current_user)):
+    try:
+        if not query:
+            return []
+        # Include last_seen, bio, interests for full card display
+        res = supabase.table("users").select("id, name, email, avatar_url, last_seen, bio, interests").ilike("name", f"%{query}%").neq("id", user.id).limit(20).execute()
         return res.data
     except Exception as e:
         return []

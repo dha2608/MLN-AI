@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import api from '@/lib/api';
+import api, { supabase } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 
 export function useOnlineStatus() {
@@ -35,7 +35,18 @@ export function useOnlineStatus() {
 
     const sendHeartbeat = async () => {
         try {
-            await api.post('/user/heartbeat');
+            // Direct update via Supabase client (more robust than backend proxy)
+            if (user?.id) {
+                const { error } = await supabase
+                    .from('users')
+                    .update({ last_seen: new Date().toISOString() })
+                    .eq('id', user.id);
+                
+                if (error) {
+                    // Fallback to backend if direct update fails (e.g. RLS issues)
+                    await api.post('/user/heartbeat');
+                }
+            }
         } catch (e) {
             // Ignore heartbeat errors
         }

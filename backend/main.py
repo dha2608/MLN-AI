@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.routers import auth, chat, stats, user, quiz
+from backend.routers import auth, chat, stats, user, quiz, social
 import os
 
 print("Starting FastAPI app...") # Debug log for Vercel

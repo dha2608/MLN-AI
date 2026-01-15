@@ -178,15 +178,17 @@ async def generate_quiz(user=Depends(get_current_user)):
         Giải thích ngắn gọn tại sao đáp án đó đúng.
         
         Trả về kết quả dưới dạng JSON thuần túy (không markdown) với cấu trúc mảng:
-        [
-            {
-                "id": 1,
-                "question": "Nội dung câu hỏi...",
-                "options": ["Đáp án A", "Đáp án B", "Đáp án C", "Đáp án D"],
-                "correct": 0,
-                "explanation": "Giải thích..."
-            }
-        ]
+        {
+            "questions": [
+                {
+                    "id": 1,
+                    "question": "Nội dung câu hỏi...",
+                    "options": ["Đáp án A", "Đáp án B", "Đáp án C", "Đáp án D"],
+                    "correct": 0,
+                    "explanation": "Giải thích..."
+                }
+            ]
+        }
         Đảm bảo kiến thức chính xác, học thuật.
         """
 

@@ -60,12 +60,25 @@ async def update_profile(data: UserUpdate, user=Depends(get_current_user)):
             return {"message": "No changes"}
 
         # Upsert into public.users
+        # Note: 'email' is usually unique/PK depending on setup, but 'id' is definitely PK.
         update_data["id"] = user.id
-        update_data["email"] = user.email # Ensure email is set on insert
+        
+        # We don't need to force email update if it's not provided, but ensuring it exists is good.
+        if not update_data.get("email"):
+            update_data["email"] = user.email
         
         res = supabase.table("users").upsert(update_data).execute()
-        return res.data[0]
+        
+        if not res.data:
+             # Fallback: if upsert fails to return data (sometimes happens with policies), fetch it
+             res = supabase.table("users").select("*").eq("id", user.id).execute()
+             
+        return res.data[0] if res.data else update_data
     except Exception as e:
+        log_error("Update profile error", e)
+        # Check for RLS policy violation
+        if "policy" in str(e).lower():
+             raise HTTPException(status_code=403, detail="Bạn không có quyền cập nhật hồ sơ này (RLS Policy).")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/heartbeat")

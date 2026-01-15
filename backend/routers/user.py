@@ -103,8 +103,21 @@ async def get_community_members(user=Depends(get_current_user)):
         except Exception as inner_e:
              # Fallback if specific columns fail (e.g. last_seen not created yet)
              log_error("Fetch community full error, trying fallback", inner_e)
-             res = supabase.table("users").select("id, name, avatar_url").limit(50).execute()
-             return res.data
+             # Try simplest query
+             res = supabase.table("users").select("*").limit(50).execute()
+             
+             # Transform generic data to expected format
+             safe_data = []
+             for u in res.data:
+                 safe_data.append({
+                     "id": u.get("id"),
+                     "name": u.get("name", "Unknown"),
+                     "avatar_url": u.get("avatar_url"),
+                     "last_seen": u.get("last_seen"),
+                     "bio": u.get("bio"),
+                     "interests": u.get("interests", [])
+                 })
+             return safe_data
     except Exception as e:
         log_error("Fetch community critical error", e)
         # Even if DB fails completely, return empty list instead of 500 to keep UI alive
@@ -138,7 +151,7 @@ async def get_blocked_users(user=Depends(get_current_user)):
     except Exception as e:
         return []
 
-@router.get("/users/search")
+@router.get("/search")
 async def search_users(query: str, user=Depends(get_current_user)):
     try:
         if not query:
@@ -147,4 +160,5 @@ async def search_users(query: str, user=Depends(get_current_user)):
         res = supabase.table("users").select("id, name, email, avatar_url, last_seen, bio, interests").ilike("name", f"%{query}%").neq("id", user.id).limit(20).execute()
         return res.data
     except Exception as e:
+        log_error("Search error", e)
         return []

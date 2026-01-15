@@ -97,27 +97,34 @@ async def get_community_members(user=Depends(get_current_user)):
         # First, try to get full details including online status
         # Use order by last_seen to show active users first
         try:
+             # Try explicit column selection first
              res = supabase.table("users").select("id, name, avatar_url, last_seen, bio, interests").order("last_seen", desc=True).limit(50).execute()
              return res.data
         except Exception as inner_e:
              # If ordering by last_seen fails (e.g. column missing), fallback to simple query
              log_error("Fetch community full error, trying fallback", inner_e)
              
-             # Fallback query
-             res = supabase.table("users").select("*").limit(50).execute()
-             
-             # Transform generic data to expected format
-             safe_data = []
-             for u in res.data:
-                 safe_data.append({
-                     "id": u.get("id"),
-                     "name": u.get("name", "Unknown"),
-                     "avatar_url": u.get("avatar_url"),
-                     "last_seen": u.get("last_seen"), # Might be None
-                     "bio": u.get("bio"),
-                     "interests": u.get("interests", [])
-                 })
-             return safe_data
+             try:
+                 # Fallback query: Just get everything, but don't order by last_seen if it fails
+                 res = supabase.table("users").select("*").limit(50).execute()
+                 
+                 # Transform generic data to expected format
+                 safe_data = []
+                 for u in res.data:
+                     safe_data.append({
+                         "id": u.get("id"),
+                         "name": u.get("name", "Unknown"),
+                         "avatar_url": u.get("avatar_url"),
+                         "last_seen": u.get("last_seen"), # Might be None
+                         "bio": u.get("bio"),
+                         "interests": u.get("interests", [])
+                     })
+                 return safe_data
+             except Exception as double_fault:
+                 log_error("Fetch community DOUBLE FAULT", double_fault)
+                 # Absolute last resort: return empty list so frontend doesn't crash 500
+                 return []
+
     except Exception as e:
         log_error("Fetch community critical error", e)
         return []

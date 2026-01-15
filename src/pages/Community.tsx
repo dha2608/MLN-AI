@@ -64,7 +64,14 @@ export default function Community() {
             const res = await api.get('/user/community');
             setUsers(res.data);
         } catch (error) {
-            console.error("Failed to fetch community", error);
+            console.error("Failed to fetch community, trying fallback", error);
+            // Auto fallback to public endpoint
+            try {
+                const fallbackRes = await api.get('/user/community/public');
+                setUsers(fallbackRes.data);
+            } catch (fbError) {
+                console.error("Fallback also failed", fbError);
+            }
         } finally {
             setLoading(false);
         }

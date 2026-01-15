@@ -104,8 +104,6 @@ async def get_community_public():
 
 @router.get("/community")
 async def get_community_members(user=Depends(get_current_user)):
-    if user:
-        log_info(f"Community fetch requested by user: {user.id}")
     try:
         # First, try to get full details including online status
         # Use order by last_seen to show active users first

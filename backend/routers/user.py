@@ -91,8 +91,20 @@ async def send_heartbeat(user=Depends(get_current_user)):
         # Log silently, don't crash frontend loop
         return {"status": "error"}
 
+@router.get("/community/public")
+async def get_community_public():
+    """Debug endpoint: Public access to community to test DB connection without Auth."""
+    try:
+        # Simple query
+        res = supabase.table("users").select("id, name, avatar_url").limit(10).execute()
+        return res.data
+    except Exception as e:
+        log_error("Public community debug error", e)
+        return {"error": str(e)}
+
 @router.get("/community")
 async def get_community_members(user=Depends(get_current_user)):
+    log_info(f"Community fetch requested by user: {user.id}")
     try:
         # First, try to get full details including online status
         # Use order by last_seen to show active users first

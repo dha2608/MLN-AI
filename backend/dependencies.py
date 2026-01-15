@@ -17,8 +17,11 @@ async def get_current_user(authorization: str = Header(None)):
                 detail="Invalid token",
             )
         return user_response.user
+    except HTTPException as he:
+        raise he
     except Exception as e:
+        print(f"Auth Dependency Error: {e}") # Log to system output
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(e),
+            detail=f"Auth failed: {str(e)}",
         )

@@ -85,15 +85,23 @@ async def get_match_state(match_id: str, user=Depends(get_current_user)):
     try:
         match_data = supabase.table("quiz_matches").select("*").eq("id", match_id).execute()
         if not match_data.data:
+            # Try to query by room code if uuid invalid format or not found
+            match_data = supabase.table("quiz_matches").select("*").eq("room_code", match_id).execute()
+            
+        if not match_data.data:
             raise HTTPException(status_code=404, detail="Match not found")
             
-        participants = supabase.table("match_participants").select("*, users(name, avatar_url)").eq("match_id", match_id).execute()
+        # Get actual UUID from found match
+        real_match_id = match_data.data[0]['id']
+            
+        participants = supabase.table("match_participants").select("*, users(name, avatar_url)").eq("match_id", real_match_id).execute()
         
         return {
             "match": match_data.data[0],
             "participants": participants.data
         }
     except Exception as e:
+         log_error(f"Get match state error for {match_id}", e)
          raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/match/{match_id}/start")

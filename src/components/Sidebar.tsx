@@ -83,7 +83,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
     { href: '/library', label: 'Thư viện Triết học', icon: Library },
     { href: '/quiz', label: 'Trắc nghiệm', icon: BrainCircuit },
     { href: '/leaderboard', label: 'Bảng xếp hạng', icon: Award },
-    { href: '/social', label: 'Cộng đồng', icon: Users },
+    { href: '/social', label: 'Cộng đồng', icon: UsersIcon },
     { href: '/statistics', label: 'Thống kê học tập', icon: BarChart2 },
     { href: '/profile', label: 'Hồ sơ cá nhân', icon: User },
   ];

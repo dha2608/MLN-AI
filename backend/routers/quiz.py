@@ -107,16 +107,31 @@ async def get_match_state(match_id: str, user=Depends(get_current_user)):
         # Get actual UUID from found match
         real_match_id = match_data.data[0]['id']
             
-        participants = supabase.table("match_participants").select("*, users(name, avatar_url)").eq("match_id", real_match_id).execute()
+        # Fetch participants (without join first to be safe)
+        participants_res = supabase.table("match_participants").select("*").eq("match_id", real_match_id).execute()
+        participants_data = participants_res.data if participants_res.data else []
+        
+        # Manually fetch user details
+        if participants_data:
+            user_ids = [p['user_id'] for p in participants_data]
+            users_res = supabase.table("users").select("id, name, avatar_url").in_("id", user_ids).execute()
+            users_map = {u['id']: u for u in users_res.data} if users_res.data else {}
+            
+            # Merge data
+            for p in participants_data:
+                p['users'] = users_map.get(p['user_id'], {"name": "Unknown", "avatar_url": None})
         
         return {
             "match": match_data.data[0],
-            "participants": participants.data
+            "participants": participants_data
         }
     except HTTPException as he:
         raise he
     except Exception as e:
          log_error(f"Get match state error for {match_id}", e)
+         # Return a friendly error instead of 500 if it's likely a DB issue
+         if "relation" in str(e) and "does not exist" in str(e):
+             raise HTTPException(status_code=503, detail="System is updating. Please try again later. (Missing DB Tables)")
          raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/match/{match_id}/start")

@@ -116,14 +116,24 @@ async def get_friends(user=Depends(get_current_user)):
 async def get_friend_requests(user=Depends(get_current_user)):
     try:
         # Get pending requests where friend_id == current user
-        res = supabase.table("friendships").select("*, users!user_id(id, name, email, avatar_url)").eq("friend_id", user.id).eq("status", "pending").execute()
+        # Avoid direct join first
+        res = supabase.table("friendships").select("*").eq("friend_id", user.id).eq("status", "pending").execute()
+        
+        if not res.data:
+            return []
+            
+        # Manually fetch senders
+        sender_ids = [r['user_id'] for r in res.data]
+        users_res = supabase.table("users").select("id, name, email, avatar_url").in_("id", sender_ids).execute()
+        users_map = {u['id']: u for u in users_res.data} if users_res.data else {}
         
         # Transform for frontend
         requests = []
         for r in res.data:
+            sender_data = users_map.get(r['user_id'], {"name": "Unknown", "email": "", "avatar_url": None})
             requests.append({
                 "id": r['id'],
-                "sender": r['users'],
+                "sender": sender_data,
                 "created_at": r['created_at']
             })
         return requests

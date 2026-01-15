@@ -15,8 +15,17 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
+  // Check if session exists in supabase auth
+  const sbSession = JSON.parse(localStorage.getItem('sb-access-token') || 'null'); // Example key, supabase uses specific key usually
+  
+  // Actually, we just need the token.
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    // Ensure "Bearer" is not duplicated if someone manually added it
+    if (token.startsWith('Bearer ')) {
+        config.headers.Authorization = token;
+    } else {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
   }
   return config;
 });

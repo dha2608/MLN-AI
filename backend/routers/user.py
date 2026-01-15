@@ -94,16 +94,16 @@ async def send_heartbeat(user=Depends(get_current_user)):
 @router.get("/community")
 async def get_community_members(user=Depends(get_current_user)):
     try:
-        # Get all users, ordered by last_seen (most recent first)
-        # We select specific columns to avoid errors if some columns are missing
-        # Also, if last_seen is missing, it will just be null, which is fine
+        # First, try to get full details including online status
+        # Use order by last_seen to show active users first
         try:
-             res = supabase.table("users").select("id, name, avatar_url, last_seen, bio, interests").order("created_at", desc=True).limit(50).execute()
+             res = supabase.table("users").select("id, name, avatar_url, last_seen, bio, interests").order("last_seen", desc=True).limit(50).execute()
              return res.data
         except Exception as inner_e:
-             # Fallback if specific columns fail (e.g. last_seen not created yet)
+             # If ordering by last_seen fails (e.g. column missing), fallback to simple query
              log_error("Fetch community full error, trying fallback", inner_e)
-             # Try simplest query
+             
+             # Fallback query
              res = supabase.table("users").select("*").limit(50).execute()
              
              # Transform generic data to expected format
@@ -113,14 +113,13 @@ async def get_community_members(user=Depends(get_current_user)):
                      "id": u.get("id"),
                      "name": u.get("name", "Unknown"),
                      "avatar_url": u.get("avatar_url"),
-                     "last_seen": u.get("last_seen"),
+                     "last_seen": u.get("last_seen"), # Might be None
                      "bio": u.get("bio"),
                      "interests": u.get("interests", [])
                  })
              return safe_data
     except Exception as e:
         log_error("Fetch community critical error", e)
-        # Even if DB fails completely, return empty list instead of 500 to keep UI alive
         return []
 
 @router.post("/block")

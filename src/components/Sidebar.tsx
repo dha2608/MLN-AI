@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
-import { MessageSquare, User, BarChart2, LogOut, Plus, BookOpen, Library, BrainCircuit, Trash2, Award, Edit3, Check, X } from 'lucide-react';
+import { MessageSquare, User, BarChart2, LogOut, Plus, BookOpen, Library, BrainCircuit, Trash2, Award, Edit3, Check, X, Users as UsersIcon, Trophy } from 'lucide-react';
 import { clsx } from 'clsx';
 import { motion } from 'framer-motion';
 import { useEffect, useState, useRef } from 'react';
@@ -82,6 +82,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
     { href: '/', label: 'Hỏi đáp Triết học', icon: MessageSquare },
     { href: '/library', label: 'Thư viện Triết học', icon: Library },
     { href: '/quiz', label: 'Trắc nghiệm', icon: BrainCircuit },
+    { href: '/quiz/pvp', label: 'Đấu trường PvP', icon: Trophy },
     { href: '/leaderboard', label: 'Bảng xếp hạng', icon: Award },
     { href: '/social', label: 'Cộng đồng', icon: UsersIcon },
     { href: '/statistics', label: 'Thống kê học tập', icon: BarChart2 },

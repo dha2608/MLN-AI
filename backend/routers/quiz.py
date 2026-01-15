@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Body
 from backend.dependencies import get_current_user
 from backend.database import supabase
 from pydantic import BaseModel
@@ -7,8 +7,116 @@ from backend.logger import log_info, log_error
 import os
 import json
 import openai
+import random
+import string
+from typing import List, Optional
 
 router = APIRouter()
+
+class CreateMatchRequest(BaseModel):
+    mode: str = "pvp" # pvp or coop
+
+class JoinMatchRequest(BaseModel):
+    room_code: str
+
+class UpdateScoreRequest(BaseModel):
+    match_id: str
+    score: int
+
+def generate_room_code(length=6):
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
+
+# --- Matchmaking / Lobby ---
+
+@router.post("/match/create")
+async def create_match(req: CreateMatchRequest, user=Depends(get_current_user)):
+    try:
+        room_code = generate_room_code()
+        
+        # Create match
+        match_res = supabase.table("quiz_matches").insert({
+            "room_code": room_code,
+            "host_id": user.id,
+            "mode": req.mode,
+            "status": "waiting"
+        }).execute()
+        
+        match_id = match_res.data[0]['id']
+        
+        # Add host as participant
+        supabase.table("match_participants").insert({
+            "match_id": match_id,
+            "user_id": user.id,
+            "status": "ready"
+        }).execute()
+        
+        return {"match_id": match_id, "room_code": room_code}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/match/join")
+async def join_match(req: JoinMatchRequest, user=Depends(get_current_user)):
+    try:
+        # Find match
+        match_res = supabase.table("quiz_matches").select("*").eq("room_code", req.room_code).eq("status", "waiting").execute()
+        if not match_res.data:
+            raise HTTPException(status_code=404, detail="Room not found or game started")
+        
+        match_id = match_res.data[0]['id']
+        
+        # Check if already joined
+        existing = supabase.table("match_participants").select("*").eq("match_id", match_id).eq("user_id", user.id).execute()
+        if existing.data:
+            return {"match_id": match_id, "room_code": req.room_code, "message": "Rejoined"}
+
+        # Join
+        supabase.table("match_participants").insert({
+            "match_id": match_id,
+            "user_id": user.id,
+            "status": "joined"
+        }).execute()
+        
+        return {"match_id": match_id, "room_code": req.room_code}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/match/{match_id}")
+async def get_match_state(match_id: str, user=Depends(get_current_user)):
+    try:
+        match_data = supabase.table("quiz_matches").select("*").eq("id", match_id).execute()
+        if not match_data.data:
+            raise HTTPException(status_code=404, detail="Match not found")
+            
+        participants = supabase.table("match_participants").select("*, users(name, avatar_url)").eq("match_id", match_id).execute()
+        
+        return {
+            "match": match_data.data[0],
+            "participants": participants.data
+        }
+    except Exception as e:
+         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/match/{match_id}/start")
+async def start_match(match_id: str, user=Depends(get_current_user)):
+    try:
+        # Verify host
+        match_res = supabase.table("quiz_matches").select("*").eq("id", match_id).eq("host_id", user.id).execute()
+        if not match_res.data:
+             raise HTTPException(status_code=403, detail="Only host can start")
+        
+        # Update status
+        supabase.table("quiz_matches").update({"status": "playing"}).eq("id", match_id).execute()
+        return {"message": "Started"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/match/score")
+async def update_match_score(req: UpdateScoreRequest, user=Depends(get_current_user)):
+    try:
+        supabase.table("match_participants").update({"score": req.score}).eq("match_id", req.match_id).eq("user_id", user.id).execute()
+        return {"message": "Score updated"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 class QuizSubmission(BaseModel):
     score: int

@@ -54,6 +54,7 @@ export default function App() {
           <Route path="/statistics" element={<Statistics />} />
           <Route path="/library" element={<Library />} />
           <Route path="/quiz" element={<Quiz />} />
+          <Route path="/quiz/pvp" element={<QuizPvP />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/social" element={<Social />} />
         </Route>

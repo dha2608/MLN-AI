@@ -1,7 +1,8 @@
+import { useTheme } from "@/components/ThemeProvider";
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { useNotificationStore } from '@/store/notificationStore';
-import { MessageSquare, User, BarChart2, LogOut, Plus, BookOpen, Library, BrainCircuit, Trash2, Award, Edit3, Check, X, Users as UsersIcon, Trophy, Globe } from 'lucide-react';
+import { MessageSquare, User, BarChart2, LogOut, Plus, BookOpen, Library, BrainCircuit, Trash2, Award, Edit3, Check, X, Users as UsersIcon, Trophy, Globe, Sun, Moon } from 'lucide-react';
 import { clsx } from 'clsx';
 import { motion } from 'framer-motion';
 import { useEffect, useState, useRef } from 'react';
@@ -9,6 +10,7 @@ import api from '@/lib/api';
 import toast from 'react-hot-toast';
 
 export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) {
+  const { theme, setTheme } = useTheme();
   const { user, logout } = useAuthStore();
   const { unreadCount } = useNotificationStore();
   const location = useLocation();
@@ -94,12 +96,12 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
 
   return (
     <div className={clsx(
-        "flex flex-col h-full w-72 bg-white border-r border-gray-200 shadow-lg z-40 font-sans transition-transform duration-300 ease-in-out",
+        "flex flex-col h-full w-72 bg-white dark:bg-dark-surface border-r border-gray-200 dark:border-dark-border shadow-lg z-40 font-sans transition-transform duration-300 ease-in-out",
         "fixed inset-y-0 left-0 lg:static lg:translate-x-0",
         isOpen ? "translate-x-0" : "-translate-x-full"
     )}>
       {/* Header */}
-      <div className="p-6 border-b border-gray-100 bg-soviet-red-700 relative">
+      <div className="p-6 border-b border-gray-100 dark:border-dark-border bg-soviet-red-700 dark:bg-soviet-red-900 relative">
         <div className="flex items-center space-x-3 text-white">
           <div className="p-2 bg-soviet-gold-500 rounded-lg shadow-md">
             <BookOpen className="h-6 w-6 text-white" />
@@ -121,8 +123,8 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
       {/* New Chat Button */}
       <div className="p-4">
           <Link to="/" className="block">
-            <button className="w-full flex items-center justify-center px-4 py-3 border border-soviet-red-200 rounded-xl shadow-sm text-sm font-medium text-soviet-red-700 bg-soviet-red-50 hover:bg-soviet-red-100 hover:border-soviet-red-300 transition-all duration-200 group">
-            <Plus className="mr-2 h-5 w-5 text-soviet-red-600 group-hover:scale-110 transition-transform" />
+            <button className="w-full flex items-center justify-center px-4 py-3 border border-soviet-red-200 dark:border-soviet-red-800 rounded-xl shadow-sm text-sm font-medium text-soviet-red-700 dark:text-soviet-red-200 bg-soviet-red-50 dark:bg-soviet-red-900/30 hover:bg-soviet-red-100 dark:hover:bg-soviet-red-900/50 hover:border-soviet-red-300 transition-all duration-200 group">
+            <Plus className="mr-2 h-5 w-5 text-soviet-red-600 dark:text-soviet-red-400 group-hover:scale-110 transition-transform" />
             Cuộc hội thoại mới
             </button>
           </Link>
@@ -130,7 +132,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto px-3 py-2 space-y-1 custom-scrollbar">
-        <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-2">Menu</p>
+        <p className="px-3 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 mt-2">Menu</p>
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.href;
@@ -141,14 +143,14 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
               className={clsx(
                 'flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 group relative',
                 isActive
-                  ? 'bg-soviet-red-50 text-soviet-red-800 shadow-sm'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 hover:pl-4'
+                  ? 'bg-soviet-red-50 dark:bg-soviet-red-900/20 text-soviet-red-800 dark:text-soviet-red-200 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-gray-200 hover:pl-4'
               )}
             >
               <Icon
                 className={clsx(
                   'mr-3 h-5 w-5 flex-shrink-0 transition-colors',
-                  isActive ? 'text-soviet-red-600' : 'text-gray-400 group-hover:text-soviet-red-500'
+                  isActive ? 'text-soviet-red-600 dark:text-soviet-red-400' : 'text-gray-400 dark:text-gray-500 group-hover:text-soviet-red-500'
                 )}
               />
               {item.label}
@@ -163,7 +165,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
         
         {/* History */}
         <div className="mt-8">
-             <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Lịch sử gần đây</p>
+             <p className="px-3 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Lịch sử gần đây</p>
              <div className="space-y-1">
                 {recentChats.length === 0 ? (
                     <div className="px-3 py-2 text-sm text-gray-400 italic">
@@ -172,7 +174,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
                 ) : (
                     recentChats.map((chat) => (
                         editingChatId === chat.id ? (
-                            <form key={chat.id} onSubmit={handleRename} className="px-3 py-2 flex items-center space-x-1 bg-white border border-soviet-red-300 rounded-lg shadow-sm">
+                            <form key={chat.id} onSubmit={handleRename} className="px-3 py-2 flex items-center space-x-1 bg-white dark:bg-dark-surface border border-soviet-red-300 rounded-lg shadow-sm">
                                 <input
                                     ref={editInputRef}
                                     type="text"
@@ -181,7 +183,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
                                     autoComplete="off"
                                     value={editTitle}
                                     onChange={(e) => setEditTitle(e.target.value)}
-                                    className="w-full text-sm border-none focus:ring-0 p-0"
+                                    className="w-full text-sm border-none focus:ring-0 p-0 bg-transparent dark:text-white"
                                     autoFocus
                                 />
                                 <button type="submit" className="text-green-600 hover:text-green-700 p-1"><Check className="h-4 w-4" /></button>
@@ -194,8 +196,8 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
                             className={clsx(
                                 "block px-3 py-2 text-sm rounded-lg truncate transition-colors group relative pr-16",
                                 location.pathname === `/chat/${chat.id}`
-                                    ? "bg-gray-100 text-gray-900 font-medium"
-                                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                                    ? "bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white font-medium"
+                                    : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-gray-200"
                             )}
                             title={chat.title}
                         >
@@ -203,14 +205,14 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
                             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity bg-inherit">
                                 <button
                                     onClick={(e) => startRename(e, chat)}
-                                    className="p-1 text-gray-400 hover:text-blue-600 rounded hover:bg-blue-50"
+                                    className="p-1 text-gray-400 hover:text-blue-600 rounded hover:bg-blue-50 dark:hover:bg-blue-900/30"
                                     title="Đổi tên"
                                 >
                                     <Edit3 className="h-3 w-3" />
                                 </button>
                                 <button
                                     onClick={(e) => handleDeleteChat(e, chat.id)}
-                                    className="p-1 text-gray-400 hover:text-red-600 rounded hover:bg-red-50"
+                                    className="p-1 text-gray-400 hover:text-red-600 rounded hover:bg-red-50 dark:hover:bg-red-900/30"
                                     title="Xóa"
                                 >
                                     <Trash2 className="h-3 w-3" />
@@ -225,29 +227,37 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
       </div>
 
       {/* User Profile Footer */}
-      <div className="p-4 border-t border-gray-100 bg-gray-50">
+      <div className="p-4 border-t border-gray-100 dark:border-dark-border bg-gray-50 dark:bg-dark-bg/50">
         <div className="flex items-center">
             <Link to="/profile" className="flex items-center flex-1 min-w-0 group cursor-pointer" onClick={onClose}>
-              <div className="h-10 w-10 rounded-full bg-soviet-red-100 border-2 border-white shadow-sm overflow-hidden flex-shrink-0 group-hover:border-soviet-red-300 transition-colors">
+              <div className="h-10 w-10 rounded-full bg-soviet-red-100 dark:bg-soviet-red-900/50 border-2 border-white dark:border-dark-border shadow-sm overflow-hidden flex-shrink-0 group-hover:border-soviet-red-300 transition-colors">
                  {user?.avatar_url ? (
                     <img src={user.avatar_url} alt="Avatar" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
                  ) : (
-                    <div className="h-full w-full flex items-center justify-center text-soviet-red-700 font-bold">
+                    <div className="h-full w-full flex items-center justify-center text-soviet-red-700 dark:text-soviet-red-400 font-bold">
                         {user?.name?.charAt(0).toUpperCase()}
                     </div>
                  )}
               </div>
               <div className="ml-3 flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate font-serif group-hover:text-soviet-red-700 transition-colors">{user?.name || user?.email}</p>
-                <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-200 truncate font-serif group-hover:text-soviet-red-700 dark:group-hover:text-soviet-red-400 transition-colors">{user?.name || user?.email}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
               </div>
             </Link>
+          
+          <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="p-2 text-gray-500 dark:text-gray-400 hover:text-soviet-red-600 dark:hover:text-soviet-red-400 transition-colors rounded-lg hover:bg-white dark:hover:bg-white/10 hover:shadow-sm mr-1"
+              title="Đổi giao diện"
+          >
+              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </button>
+
           <button
             onClick={logout}
-            className="flex items-center space-x-2 px-3 py-2 text-gray-500 hover:text-soviet-red-600 transition-colors rounded-lg hover:bg-white hover:shadow-sm ml-auto"
+            className="flex items-center space-x-2 px-3 py-2 text-gray-500 dark:text-gray-400 hover:text-soviet-red-600 dark:hover:text-soviet-red-400 transition-colors rounded-lg hover:bg-white dark:hover:bg-white/10 hover:shadow-sm"
             title="Đăng xuất"
           >
-            <span className="text-xs font-medium lg:hidden">Đăng xuất</span>
             <LogOut className="h-5 w-5" />
           </button>
         </div>

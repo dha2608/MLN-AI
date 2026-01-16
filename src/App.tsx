@@ -18,6 +18,8 @@ import Layout from "@/components/Layout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 
+import { ThemeProvider } from "@/components/ThemeProvider";
+
 export default function App() {
   const { setSession, isAuthChecking } = useAuthStore();
   useOnlineStatus(); // Activate heartbeat globally
@@ -38,16 +40,17 @@ export default function App() {
 
   if (isAuthChecking) {
     return (
-      <div className="flex h-screen items-center justify-center bg-white">
+      <div className="flex h-screen items-center justify-center bg-white dark:bg-dark-bg">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-soviet-red-700"></div>
       </div>
     );
   }
 
   return (
-    <Router>
-      <Toaster position="top-right" />
-      <Routes>
+    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+      <Router>
+        <Toaster position="top-right" />
+        <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         
@@ -68,5 +71,6 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
+    </ThemeProvider>
   );
 }

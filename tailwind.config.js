@@ -4,9 +4,17 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
+        dark: {
+          bg: '#121212',
+          surface: '#1e1e1e',
+          border: '#2e2e2e',
+          text: '#e0e0e0',
+          muted: '#a0a0a0'
+        },
         'soviet-red': {
           50: '#fef2f2',
           100: '#fee2e2',

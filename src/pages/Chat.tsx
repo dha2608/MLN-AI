@@ -139,11 +139,11 @@ export default function Chat() {
   }
 
   return (
-    <div className="flex h-full bg-white relative overflow-hidden font-sans">
+    <div className="flex h-full bg-white dark:bg-dark-bg relative overflow-hidden font-sans">
       {/* Background Pattern */}
-      <div className="absolute inset-0 bg-hero-pattern opacity-5 pointer-events-none z-0"></div>
+      <div className="absolute inset-0 bg-hero-pattern opacity-5 pointer-events-none z-0 dark:opacity-[0.02]"></div>
 
-      <div className="flex-1 flex flex-col h-full z-10 w-full bg-white/90 backdrop-blur-sm">
+      <div className="flex-1 flex flex-col h-full z-10 w-full bg-white/90 dark:bg-dark-bg/90 backdrop-blur-sm">
         
         {/* Settings Modal */}
         <AnimatePresence>
@@ -152,28 +152,28 @@ export default function Chat() {
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
-                    className="absolute top-4 right-4 z-50 bg-white p-4 rounded-xl shadow-xl border border-gray-200 w-80"
+                    className="absolute top-4 right-4 z-50 bg-white dark:bg-dark-surface p-4 rounded-xl shadow-xl border border-gray-200 dark:border-dark-border w-80"
                 >
-                    <h3 className="font-bold text-gray-800 mb-2 flex items-center">
-                        <PenTool className="w-4 h-4 mr-2 text-soviet-red-600" />
+                    <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-2 flex items-center">
+                        <PenTool className="w-4 h-4 mr-2 text-soviet-red-600 dark:text-soviet-red-400" />
                         Cài đặt tính cách AI
                     </h3>
                     <textarea
                         value={systemPrompt}
                         onChange={(e) => setSystemPrompt(e.target.value)}
                         placeholder="Ví dụ: Bạn là một nhà triết học khắc kỷ..."
-                        className="w-full h-24 p-2 text-sm border border-gray-300 rounded-lg mb-2 focus:ring-2 focus:ring-soviet-red-500 focus:outline-none"
+                        className="w-full h-24 p-2 text-sm border border-gray-300 dark:border-dark-border rounded-lg mb-2 focus:ring-2 focus:ring-soviet-red-500 focus:outline-none bg-white dark:bg-dark-bg text-gray-900 dark:text-gray-200"
                     />
                     <div className="flex justify-end space-x-2">
                          <button 
                             onClick={() => setSystemPrompt('')}
-                            className="text-xs text-gray-500 hover:text-red-500 px-2 py-1"
+                            className="text-xs text-gray-500 dark:text-gray-400 hover:text-red-500 px-2 py-1"
                          >
                             Xóa
                          </button>
                          <button 
                             onClick={() => setShowSettings(false)}
-                            className="text-xs bg-soviet-red-700 text-white px-3 py-1 rounded-md hover:bg-soviet-red-800"
+                            className="text-xs bg-soviet-red-700 dark:bg-soviet-red-800 text-white px-3 py-1 rounded-md hover:bg-soviet-red-800 dark:hover:bg-soviet-red-700"
                          >
                             Đóng
                          </button>
@@ -191,19 +191,19 @@ export default function Chat() {
                 transition={{ duration: 0.5 }}
                 className="flex flex-col items-center justify-center h-full text-center"
             >
-              <div className="bg-gradient-to-br from-soviet-red-700 to-soviet-red-900 p-6 rounded-full shadow-2xl mb-8 transform hover:scale-105 transition-transform duration-300 ring-4 ring-soviet-red-100">
+              <div className="bg-gradient-to-br from-soviet-red-700 to-soviet-red-900 p-6 rounded-full shadow-2xl mb-8 transform hover:scale-105 transition-transform duration-300 ring-4 ring-soviet-red-100 dark:ring-soviet-red-900/30">
                 <BookOpen className="h-16 w-16 text-soviet-gold-400" />
               </div>
-              <h1 className="text-4xl font-serif font-bold text-gray-900 mb-4 tracking-tight">
-                Triết học <span className="text-soviet-red-700">Mác - Lênin</span>
+              <h1 className="text-4xl font-serif font-bold text-gray-900 dark:text-white mb-4 tracking-tight">
+                Triết học <span className="text-soviet-red-700 dark:text-soviet-red-500">Mác - Lênin</span>
               </h1>
-              <p className="mt-2 text-lg text-gray-600 max-w-lg leading-relaxed">
+              <p className="mt-2 text-lg text-gray-600 dark:text-gray-400 max-w-lg leading-relaxed">
                 Trợ lý AI chuyên sâu, giúp bạn tìm hiểu và nghiên cứu về chủ nghĩa xã hội khoa học.
               </p>
               
               <button 
                 onClick={() => setShowSettings(!showSettings)}
-                className="mt-4 text-sm text-soviet-red-600 font-medium hover:underline flex items-center"
+                className="mt-4 text-sm text-soviet-red-600 dark:text-soviet-red-400 font-medium hover:underline flex items-center"
               >
                   <PenTool className="w-4 h-4 mr-1" />
                   Tùy chỉnh tính cách AI
@@ -213,18 +213,18 @@ export default function Chat() {
                   {SUGGESTED_QUESTIONS.map((q, idx) => (
                       <motion.button
                         key={idx}
-                        whileHover={{ scale: 1.02, backgroundColor: '#FEF2F2' }}
+                        whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.1 }}
                         onClick={() => sendMessage(q)}
-                        className="flex items-center p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:border-soviet-red-200 hover:shadow-md transition-all text-left group"
+                        className="flex items-center p-4 bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl shadow-sm hover:border-soviet-red-200 dark:hover:border-soviet-red-800 hover:shadow-md transition-all text-left group"
                       >
-                          <div className="bg-soviet-red-50 p-2 rounded-lg mr-4 group-hover:bg-soviet-red-100 transition-colors">
-                            <Star className="h-4 w-4 text-soviet-red-600" />
+                          <div className="bg-soviet-red-50 dark:bg-soviet-red-900/20 p-2 rounded-lg mr-4 group-hover:bg-soviet-red-100 dark:group-hover:bg-soviet-red-900/40 transition-colors">
+                            <Star className="h-4 w-4 text-soviet-red-600 dark:text-soviet-red-400" />
                           </div>
-                          <span className="text-sm font-medium text-gray-700 group-hover:text-soviet-red-800">{q}</span>
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-soviet-red-800 dark:group-hover:text-soviet-red-300">{q}</span>
                       </motion.button>
                   ))}
               </div>
@@ -245,7 +245,7 @@ export default function Chat() {
                 {/* Avatar for AI */}
                 {msg.role === 'assistant' && (
                     <div className="flex-shrink-0 mt-1">
-                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-soviet-red-700 to-soviet-red-900 flex items-center justify-center shadow-md border-2 border-white ring-2 ring-soviet-red-50">
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-soviet-red-700 to-soviet-red-900 flex items-center justify-center shadow-md border-2 border-white dark:border-dark-border ring-2 ring-soviet-red-50 dark:ring-soviet-red-900/20">
                             <Sparkles className="h-5 w-5 text-soviet-gold-400" />
                         </div>
                     </div>
@@ -255,12 +255,12 @@ export default function Chat() {
                   className={clsx(
                     'max-w-[85%] md:max-w-[75%] rounded-2xl px-6 py-4 shadow-sm',
                     msg.role === 'user'
-                      ? 'bg-gray-100 text-gray-800 rounded-br-none border border-gray-200'
-                      : 'bg-white text-gray-900 rounded-bl-none border border-gray-100 shadow-md prose-container'
+                      ? 'bg-gray-100 dark:bg-dark-surface text-gray-800 dark:text-gray-200 rounded-br-none border border-gray-200 dark:border-dark-border'
+                      : 'bg-white dark:bg-dark-surface text-gray-900 dark:text-gray-100 rounded-bl-none border border-gray-100 dark:border-dark-border shadow-md prose-container dark:prose-invert'
                   )}
                 >
                    {msg.role === 'assistant' ? (
-                       <div className="prose prose-sm md:prose-base max-w-none font-sans text-gray-800">
+                       <div className="prose prose-sm md:prose-base max-w-none font-sans text-gray-800 dark:text-gray-200 dark:prose-invert">
                            <ReactMarkdown>{msg.content}</ReactMarkdown>
                        </div>
                    ) : (
@@ -271,11 +271,11 @@ export default function Chat() {
                 {/* Avatar for User */}
                 {msg.role === 'user' && (
                     <div className="flex-shrink-0 mt-1">
-                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center border-2 border-white shadow-sm overflow-hidden">
+                        <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center border-2 border-white dark:border-dark-border shadow-sm overflow-hidden">
                             {user?.avatar_url ? (
                                 <img src={user.avatar_url} alt="User" className="h-full w-full object-cover" />
                             ) : (
-                                <User className="h-5 w-5 text-gray-500" />
+                                <User className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                             )}
                         </div>
                     </div>
@@ -292,7 +292,7 @@ export default function Chat() {
                 className="flex w-full space-x-4 justify-start"
              >
                 <div className="flex-shrink-0 mt-1">
-                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-soviet-red-700 to-soviet-red-900 flex items-center justify-center shadow-md ring-2 ring-soviet-red-50">
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-soviet-red-700 to-soviet-red-900 flex items-center justify-center shadow-md ring-2 ring-soviet-red-50 dark:ring-soviet-red-900/20">
                             <motion.div
                               animate={{ rotate: 360 }}
                               transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
@@ -301,8 +301,8 @@ export default function Chat() {
                             </motion.div>
                         </div>
                 </div>
-                <div className="bg-white rounded-2xl rounded-bl-none px-6 py-4 border border-gray-100 shadow-md flex items-center space-x-2">
-                    <span className="text-gray-500 font-medium text-sm italic">Đang suy nghĩ...</span>
+                <div className="bg-white dark:bg-dark-surface rounded-2xl rounded-bl-none px-6 py-4 border border-gray-100 dark:border-dark-border shadow-md flex items-center space-x-2">
+                    <span className="text-gray-500 dark:text-gray-400 font-medium text-sm italic">Đang suy nghĩ...</span>
                     <span className="w-1.5 h-1.5 bg-soviet-red-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
                     <span className="w-1.5 h-1.5 bg-soviet-red-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
                     <span className="w-1.5 h-1.5 bg-soviet-red-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
@@ -313,7 +313,7 @@ export default function Chat() {
         </div>
 
         {/* Input Area */}
-        <div className="p-4 md:p-6 bg-gradient-to-t from-white via-white to-transparent space-y-4 w-full px-4 md:px-12 lg:px-20 mx-auto">
+        <div className="p-4 md:p-6 bg-gradient-to-t from-white via-white to-transparent dark:from-dark-bg dark:via-dark-bg dark:to-transparent space-y-4 w-full px-4 md:px-12 lg:px-20 mx-auto">
           
           {/* Modes Selection */}
           <div className="flex justify-between items-center">
@@ -325,8 +325,8 @@ export default function Chat() {
                     className={clsx(
                         "flex items-center px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap flex-shrink-0",
                         currentMode === mode.id 
-                            ? "bg-soviet-red-100 text-soviet-red-800 ring-1 ring-soviet-red-300" 
-                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            ? "bg-soviet-red-100 dark:bg-soviet-red-900/40 text-soviet-red-800 dark:text-soviet-red-200 ring-1 ring-soviet-red-300 dark:ring-soviet-red-700" 
+                            : "bg-gray-100 dark:bg-dark-surface text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10"
                     )}
                 >
                     <mode.icon className="w-3 h-3 mr-1.5" />
@@ -339,7 +339,7 @@ export default function Chat() {
                 onClick={() => setShowSettings(!showSettings)}
                 className={clsx(
                     "p-2 rounded-full transition-colors",
-                    systemPrompt ? "text-soviet-red-600 bg-soviet-red-50" : "text-gray-400 hover:bg-gray-100"
+                    systemPrompt ? "text-soviet-red-600 dark:text-soviet-red-400 bg-soviet-red-50 dark:bg-soviet-red-900/20" : "text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-white/5"
                 )}
                 title="Cài đặt Prompt"
             >
@@ -356,7 +356,7 @@ export default function Chat() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Hỏi về triết học Mác - Lênin..."
-              className="w-full pl-6 pr-14 py-4 bg-white border border-gray-200 rounded-full shadow-lg focus:ring-2 focus:ring-soviet-red-500 focus:border-transparent transition-all placeholder-gray-400 text-gray-700 group-hover:shadow-xl"
+              className="w-full pl-6 pr-14 py-4 bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-full shadow-lg focus:ring-2 focus:ring-soviet-red-500 focus:border-transparent transition-all placeholder-gray-400 dark:placeholder-gray-500 text-gray-700 dark:text-gray-200 group-hover:shadow-xl"
               disabled={isLoading}
             />
             <button
@@ -367,7 +367,7 @@ export default function Chat() {
               <Send className="h-5 w-5" />
             </button>
           </form>
-          <p className="text-center text-xs text-gray-400 mt-3 font-medium">
+          <p className="text-center text-xs text-gray-400 dark:text-gray-600 mt-3 font-medium">
              Hệ thống hỗ trợ nghiên cứu triết học Mác - Lênin
           </p>
         </div>

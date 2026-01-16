@@ -3,7 +3,7 @@ import api, { supabase } from '@/lib/api';
 import { isUserOnline } from '@/hooks/useOnlineStatus';
 import { Search, UserPlus, MessageCircle, Ban } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { clsx } from 'clsx';
 
@@ -183,21 +183,29 @@ export default function Community() {
                                         </div>
                                     )}
                                     
-                                    <div className="flex items-center mb-4">
-                                        <div className="h-16 w-16 rounded-full bg-gray-200 overflow-hidden border-2 border-white shadow-sm flex-shrink-0">
-                                            {user.avatar_url ? (
-                                                <img src={user.avatar_url} alt={user.name} className="h-full w-full object-cover" />
-                                            ) : (
-                                                <div className="h-full w-full flex items-center justify-center font-bold text-gray-500 text-xl">
-                                                    {user.name?.charAt(0).toUpperCase()}
+                                    <div className="flex items-center space-x-3 mb-4">
+                                        <div className="relative">
+                                            <Link to={`/profile/${user.id}`}>
+                                                <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden border-2 border-white shadow-sm hover:ring-2 hover:ring-soviet-red-300 transition-all cursor-pointer">
+                                                    {user.avatar_url ? (
+                                                        <img src={user.avatar_url} alt={user.name} className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+                                                    ) : (
+                                                        <span className="font-bold text-gray-500">{user.name?.charAt(0).toUpperCase()}</span>
+                                                    )}
                                                 </div>
-                                            )}
+                                            </Link>
+                                            <span className={clsx(
+                                                "absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white",
+                                                isUserOnline(user.last_seen) ? "bg-green-500" : "bg-gray-400"
+                                            )}></span>
                                         </div>
-                                        <div className="ml-4 min-w-0">
-                                            <h3 className="text-lg font-bold text-gray-900 truncate">{user.name}</h3>
-                                            <p className="text-sm text-gray-500 truncate">
-                                                {isOnline ? 'Đang hoạt động' : 'Offline'}
-                                            </p>
+                                        <div>
+                                            <Link to={`/profile/${user.id}`} className="font-medium text-gray-900 hover:text-soviet-red-700 transition-colors">
+                                                {user.name}
+                                            </Link>
+                                            <div className="text-xs text-gray-500">
+                                                {isUserOnline(user.last_seen) ? "Đang hoạt động" : "Ngoại tuyến"}
+                                            </div>
                                         </div>
                                     </div>
                                     

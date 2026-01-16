@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Body
 from backend.dependencies import get_current_user
 from backend.database import supabase
 from pydantic import BaseModel
-from datetime import date
+from datetime import date, timedelta
 from backend.logger import log_info, log_error
 import os
 import json
@@ -221,17 +221,19 @@ async def get_quiz_status(user=Depends(get_current_user)):
     try:
         user_id = user.id
         log_info(f"Checking quiz status for {user_id}")
-        stats = supabase.table("statistics").select("last_quiz_date").eq("user_id", user_id).execute()
+        stats = supabase.table("statistics").select("last_quiz_date, streak_count").eq("user_id", user_id).execute()
         
         today = str(date.today())
         can_take_quiz = True
+        streak = 0
         
         if stats.data:
             last_date = stats.data[0].get('last_quiz_date')
+            streak = stats.data[0].get('streak_count', 0) or 0
             if last_date == today:
                 can_take_quiz = False
                 
-        return {"can_take_quiz": can_take_quiz}
+        return {"can_take_quiz": can_take_quiz, "streak": streak}
     except Exception as e:
         log_error("Error checking quiz status", e)
         raise HTTPException(status_code=500, detail=str(e))
@@ -240,10 +242,13 @@ async def get_quiz_status(user=Depends(get_current_user)):
 async def submit_quiz(submission: QuizSubmission, user=Depends(get_current_user)):
     try:
         user_id = user.id
-        today = str(date.today())
+        today = date.today()
+        today_str = str(today)
+        yesterday_str = str(today - timedelta(days=1))
+        
         log_info(f"Submitting quiz for {user_id}, score: {submission.score}")
         
-        # 0. Ensure user exists in public.users (Critical for Leaderboard joins)
+        # 0. Ensure user exists in public.users
         try:
             check_user = supabase.table("users").select("id").eq("id", user_id).execute()
             if not check_user.data:
@@ -255,7 +260,7 @@ async def submit_quiz(submission: QuizSubmission, user=Depends(get_current_user)
                     "email": email_val,
                     "name": name_val,
                     "avatar_url": user_metadata.get('avatar_url'),
-                    "password_hash": "google_oauth" # Dummy value to satisfy NOT NULL constraint
+                    "password_hash": "google_oauth"
                 }
                 supabase.table("users").insert(user_data).execute()
         except Exception as e:
@@ -264,27 +269,48 @@ async def submit_quiz(submission: QuizSubmission, user=Depends(get_current_user)
         # Check if already taken
         stats_res = supabase.table("statistics").select("*").eq("user_id", user_id).execute()
         
-        if stats_res.data and stats_res.data[0].get('last_quiz_date') == today:
+        if stats_res.data and stats_res.data[0].get('last_quiz_date') == today_str:
              log_info("Quiz already taken today")
              raise HTTPException(status_code=400, detail="Bạn đã thực hiện bài trắc nghiệm hôm nay rồi.")
 
+        new_streak = 1
         if not stats_res.data:
             supabase.table("statistics").insert({
                 "user_id": user_id, 
                 "quiz_score": submission.score,
-                "last_quiz_date": today,
-                "total_questions": 0 # Initialize if missing
+                "last_quiz_date": today_str,
+                "total_questions": 0,
+                "streak_count": 1,
+                "last_streak_date": today_str
             }).execute()
         else:
-            current_score = stats_res.data[0].get('quiz_score', 0) or 0 # Handle None
+            current_score = stats_res.data[0].get('quiz_score', 0) or 0
+            last_streak_date = stats_res.data[0].get('last_streak_date')
+            current_streak = stats_res.data[0].get('streak_count', 0) or 0
+            
+            # Calculate Streak
+            if last_streak_date == yesterday_str:
+                new_streak = current_streak + 1
+            elif last_streak_date == today_str:
+                 new_streak = current_streak # Should not happen, but safe
+            else:
+                new_streak = 1 # Reset if missed a day
+
             new_score = current_score + submission.score
+            
             supabase.table("statistics").update({
                 "quiz_score": new_score,
-                "last_quiz_date": today
+                "last_quiz_date": today_str,
+                "streak_count": new_streak,
+                "last_streak_date": today_str
             }).eq("user_id", user_id).execute()
             
         log_info("Quiz submitted successfully")
-        return {"message": "Score updated", "total_score": new_score if 'new_score' in locals() else submission.score}
+        return {
+            "message": "Score updated", 
+            "total_score": new_score if 'new_score' in locals() else submission.score,
+            "streak": new_streak
+        }
 
     except HTTPException as he:
         raise he

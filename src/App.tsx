@@ -55,6 +55,7 @@ export default function App() {
           <Route path="/" element={<Chat />} />
           <Route path="/chat/:id" element={<Chat />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/profile/:userId" element={<Profile />} />
           <Route path="/statistics" element={<Statistics />} />
           <Route path="/library" element={<Library />} />
           <Route path="/quiz" element={<Quiz />} />

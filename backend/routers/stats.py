@@ -70,10 +70,14 @@ async def get_statistics(user=Depends(get_current_user)):
         daily_activity = [{"date": k, "count": v} for k, v in daily_counts.items()]
         daily_activity.sort(key=lambda x: x['date'])
 
-        # Total questions (all time)
+        # Total questions (all time) - Count actual messages
         total_q = 0
-        if response and response.data:
-            total_q = response.data[0].get("total_questions", 0)
+        try:
+            if conv_ids:
+                 m_res = supabase.table("messages").select("id", count="exact").in_("conversation_id", conv_ids).eq("role", "user").execute()
+                 total_q = m_res.count if m_res.count is not None else len(m_res.data)
+        except Exception as e:
+            log_error("Error counting personal total questions", e)
         
         personal_stats["total_questions"] = total_q
         personal_stats["weekly_questions"] = weekly_total

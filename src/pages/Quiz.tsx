@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BrainCircuit, CheckCircle, XCircle, Trophy, ArrowRight, RefreshCcw } from 'lucide-react';
+import { BrainCircuit, CheckCircle, XCircle, Trophy, ArrowRight, RefreshCcw, Clock, Flame } from 'lucide-react';
 import { clsx } from 'clsx';
 import api from '@/lib/api';
 import { useNavigate } from 'react-router-dom';
@@ -137,6 +137,8 @@ export default function Quiz() {
     const [showResult, setShowResult] = useState(false);
     const navigate = useNavigate();
     const [canTakeQuiz, setCanTakeQuiz] = useState(true);
+    const [streak, setStreak] = useState(0);
+    const [timeToReset, setTimeToReset] = useState("");
 
     const currentQuestion = questions[currentQuestionIdx];
 
@@ -146,8 +148,12 @@ export default function Quiz() {
             try {
                 const statusRes = await api.get('/quiz/status');
                 setCanTakeQuiz(statusRes.data.can_take_quiz);
+                setStreak(statusRes.data.streak || 0);
                 
-                if (!statusRes.data.can_take_quiz) return;
+                if (!statusRes.data.can_take_quiz) {
+                    startCountdown();
+                    return;
+                }
 
                 // 2. Fetch AI questions with timeout race
                 try {
@@ -176,6 +182,27 @@ export default function Quiz() {
         initQuiz();
     }, []);
 
+    const startCountdown = () => {
+        const updateTimer = () => {
+            const now = new Date();
+            const tomorrow = new Date(now);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(0, 0, 0, 0);
+            
+            const diff = tomorrow.getTime() - now.getTime();
+            
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            setTimeToReset(`${hours}h ${minutes}m ${seconds}s`);
+        };
+        
+        updateTimer();
+        const interval = setInterval(updateTimer, 1000);
+        return () => clearInterval(interval);
+    };
+
     const handleOptionSelect = (idx: number) => {
         if (isAnswered || !canTakeQuiz) return;
         setSelectedOption(idx);
@@ -184,7 +211,7 @@ export default function Quiz() {
     if ((!canTakeQuiz && !showResult) || questions.length === 0) {
         return (
             <div className="flex h-full bg-gray-50 items-center justify-center font-sans p-4">
-                {questions.length === 0 ? (
+                {questions.length === 0 && canTakeQuiz ? (
                     <div className="flex flex-col items-center">
                         <div className="w-16 h-16 border-4 border-soviet-red-200 border-t-soviet-red-700 rounded-full animate-spin mb-4"></div>
                         <div className="text-soviet-red-700 font-medium animate-pulse">Đang chuẩn bị câu hỏi...</div>
@@ -195,11 +222,20 @@ export default function Quiz() {
                         animate={{ scale: 1, opacity: 1 }}
                         className="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full text-center"
                     >
-                        <div className="bg-soviet-red-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <CheckCircle className="h-12 w-12 text-soviet-red-600" />
+                        <div className="bg-gray-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 relative">
+                            <Clock className="h-12 w-12 text-gray-500" />
+                            {streak > 0 && (
+                                <div className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center shadow-sm">
+                                    <Flame className="h-3 w-3 mr-1" /> {streak}
+                                </div>
+                            )}
                         </div>
-                        <h2 className="text-2xl font-serif font-bold text-gray-900 mb-2">Đã hoàn thành!</h2>
-                        <p className="text-gray-600 mb-6">Bạn đã hoàn thành bài trắc nghiệm của ngày hôm nay. Hãy quay lại vào ngày mai nhé!</p>
+                        <h2 className="text-2xl font-serif font-bold text-gray-900 mb-2">Đã hoàn thành hôm nay</h2>
+                        <p className="text-gray-600 mb-6">Bạn đã hoàn thành nhiệm vụ trắc nghiệm hôm nay. Hãy quay lại vào ngày mai để duy trì chuỗi!</p>
+                        
+                        <div className="bg-soviet-red-50 text-soviet-red-700 font-mono text-xl font-bold py-3 rounded-xl mb-6 border border-soviet-red-100">
+                            {timeToReset || "Loading..."}
+                        </div>
                         
                         <button 
                             onClick={() => navigate('/leaderboard')}
@@ -239,7 +275,8 @@ export default function Quiz() {
         setShowResult(true);
         try {
             if (score > 0 || (selectedOption === currentQuestion.correct)) {
-                 await api.post('/quiz/submit', { score: score });
+                 const res = await api.post('/quiz/submit', { score: score });
+                 if (res.data.streak) setStreak(res.data.streak);
             }
         } catch (error: any) {
             console.error("Failed to submit score", error);
@@ -273,9 +310,16 @@ export default function Quiz() {
                     <h2 className="text-3xl font-serif font-bold text-gray-900 mb-2">Hoàn thành!</h2>
                     <p className="text-gray-600 mb-6">Bạn đã trả lời đúng</p>
                     
-                    <div className="text-5xl font-bold text-soviet-red-700 mb-8">
+                    <div className="text-5xl font-bold text-soviet-red-700 mb-4">
                         {score} <span className="text-2xl text-gray-400">/ {questions.length}</span>
                     </div>
+
+                    {streak > 0 && (
+                        <div className="inline-flex items-center bg-orange-100 text-orange-700 px-4 py-2 rounded-full font-bold mb-8 animate-pulse">
+                            <Flame className="h-5 w-5 mr-2" />
+                            Chuỗi {streak} ngày
+                        </div>
+                    )}
 
                     <div className="space-y-3">
                         <button 
@@ -284,13 +328,6 @@ export default function Quiz() {
                         >
                             <Trophy className="mr-2 h-5 w-5" />
                             Xem Bảng xếp hạng
-                        </button>
-                        <button 
-                            onClick={handleRestart}
-                            className="w-full py-3 bg-white border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors flex items-center justify-center"
-                        >
-                            <RefreshCcw className="mr-2 h-5 w-5" />
-                            Thử lại
                         </button>
                     </div>
                 </motion.div>
@@ -303,22 +340,29 @@ export default function Quiz() {
             <div className="max-w-4xl mx-auto w-full py-10 px-4 sm:px-6 lg:px-8 flex flex-col min-h-full">
                 
                 {/* Header */}
-                <div className="mb-8">
-                    <div className="flex items-center space-x-2 text-soviet-red-700 mb-2">
-                        <BrainCircuit className="h-6 w-6" />
-                        <span className="font-bold tracking-wider uppercase text-sm">Trắc nghiệm Triết học</span>
+                <div className="mb-8 flex justify-between items-end">
+                    <div>
+                        <div className="flex items-center space-x-2 text-soviet-red-700 mb-2">
+                            <BrainCircuit className="h-6 w-6" />
+                            <span className="font-bold tracking-wider uppercase text-sm">Trắc nghiệm Triết học</span>
+                        </div>
+                        <div className="text-xs text-gray-500 font-medium">
+                            Câu {currentQuestionIdx + 1} / {questions.length}
+                        </div>
                     </div>
-                    <div className="w-full bg-gray-200 h-2 rounded-full">
-                        <motion.div 
-                            className="bg-soviet-red-600 h-2 rounded-full"
-                            initial={{ width: 0 }}
-                            animate={{ width: `${((currentQuestionIdx + 1) / questions.length) * 100}%` }}
-                        />
-                    </div>
-                    <div className="flex justify-between text-xs text-gray-500 mt-2 font-medium">
-                        <span>Câu {currentQuestionIdx + 1}</span>
-                        <span>{questions.length} câu hỏi</span>
-                    </div>
+                    {streak > 0 && (
+                        <div className="flex items-center text-orange-600 font-bold bg-orange-50 px-3 py-1 rounded-full text-sm">
+                            <Flame className="h-4 w-4 mr-1" /> {streak}
+                        </div>
+                    )}
+                </div>
+                
+                <div className="w-full bg-gray-200 h-2 rounded-full mb-8">
+                    <motion.div 
+                        className="bg-soviet-red-600 h-2 rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${((currentQuestionIdx + 1) / questions.length) * 100}%` }}
+                    />
                 </div>
 
                 {/* Question Card */}

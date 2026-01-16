@@ -83,6 +83,197 @@ async def get_profile(user=Depends(get_current_user)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/profile/{target_user_id}")
+async def get_public_profile(target_user_id: str, user=Depends(get_current_user)):
+    try:
+        # Check privacy settings first
+        privacy_res = supabase.table("users").select("is_profile_public, allow_stranger_messages").eq("id", target_user_id).execute()
+        
+        if not privacy_res.data:
+             raise HTTPException(status_code=404, detail="User not found")
+             
+        privacy_settings = privacy_res.data[0]
+        is_public = privacy_settings.get("is_profile_public", True) # Default True if column missing/null
+        
+        # If accessing own profile, always allow
+        is_me = (target_user_id == user.id)
+        
+        if not is_public and not is_me:
+             # Check if friends
+             # (Simple check: count accepted friendships)
+             friend_res = supabase.table("friendships").select("id", count="exact").eq("status", "accepted").or_(f"and(user_id.eq.{user.id},friend_id.eq.{target_user_id}),and(user_id.eq.{target_user_id},friend_id.eq.{user.id})").execute()
+             is_friend = (friend_res.count > 0) if friend_res.count is not None else False
+             
+             if not is_friend:
+                  raise HTTPException(status_code=403, detail="Hồ sơ này là riêng tư.")
+
+        # Fetch basic info
+        res = supabase.table("users").select("*").eq("id", target_user_id).execute()
+        if not res.data:
+             raise HTTPException(status_code=404, detail="User not found")
+             
+        db_user = res.data[0]
+        
+        user_data = {
+            "id": db_user["id"],
+            "name": db_user.get("name") or "Người dùng ẩn danh",
+            "avatar_url": db_user.get("avatar_url"),
+            "created_at": db_user.get("created_at"),
+            "bio": db_user.get("bio") or "",
+            "interests": db_user.get("interests") or [],
+            "allow_stranger_messages": db_user.get("allow_stranger_messages", True),
+            "achievements": [],
+            "stats": {
+                "total_questions": 0,
+                "streak": 0,
+                "total_friends": 0
+            }
+        }
+        
+        # Fetch achievements
+        try:
+            ach_res = supabase.table("user_achievements").select("created_at, achievements(id, name, icon_url, description)").eq("user_id", target_user_id).execute()
+            if ach_res.data:
+                user_data["achievements"] = [
+                    {
+                        "id": a["achievements"]["id"],
+                        "name": a["achievements"]["name"], 
+                        "icon": a["achievements"]["icon_url"],
+                        "description": a["achievements"].get("description", ""),
+                        "unlocked_at": a["created_at"]
+                    } 
+                    for a in ach_res.data if a.get("achievements")
+                ]
+        except Exception:
+            pass
+
+        # Fetch stats
+        try:
+            stats_res = supabase.table("statistics").select("total_questions, streak_count").eq("user_id", target_user_id).execute()
+            if stats_res.data:
+                user_data["stats"]["total_questions"] = stats_res.data[0].get("total_questions", 0)
+                user_data["stats"]["streak"] = stats_res.data[0].get("streak_count", 0)
+                
+            # Count friends
+            f_res = supabase.table("friendships").select("id", count="exact").eq("status", "accepted").or_(f"user_id.eq.{target_user_id},friend_id.eq.{target_user_id}").execute()
+            user_data["stats"]["total_friends"] = f_res.count or 0
+        except Exception:
+            pass
+            
+        return user_data
+
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        log_error(f"Get public profile error for {target_user_id}", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/profile/{target_user_id}")
+async def get_public_profile(target_user_id: str, user=Depends(get_current_user)):
+    try:
+        # Check if requesting self (redirect to standard profile logic or handle here)
+        if target_user_id == user.id or target_user_id == "me":
+             return await get_profile(user)
+
+        # 1. Fetch user basic info
+        res = supabase.table("users").select("id, name, avatar_url, bio, interests, created_at, last_seen, allow_stranger_messages").eq("id", target_user_id).execute()
+        
+        if not res.data:
+            raise HTTPException(status_code=404, detail="User not found")
+            
+        target_user = res.data[0]
+        
+        # 2. Fetch stats
+        stats_data = {
+            "total_questions": 0,
+            "streak": 0,
+            "total_friends": 0,
+            "total_achievements": 0
+        }
+        
+        try:
+            # Stats table
+            s_res = supabase.table("statistics").select("total_questions, streak_count").eq("user_id", target_user_id).execute()
+            if s_res.data:
+                stats_data["total_questions"] = s_res.data[0].get("total_questions", 0)
+                stats_data["streak"] = s_res.data[0].get("streak_count", 0)
+            
+            # Recalculate total questions properly if needed (like we did in stats.py)
+            # For public profile, maybe just use the cached value in statistics table or do a quick count
+            # Let's do a quick count of messages to be accurate
+            # Get conversation IDs
+            conv_res = supabase.table("conversations").select("id").eq("user_id", target_user_id).execute()
+            if conv_res.data:
+                c_ids = [c['id'] for c in conv_res.data]
+                if c_ids:
+                    m_res = supabase.table("messages").select("id", count="exact").in_("conversation_id", c_ids).eq("role", "user").execute()
+                    stats_data["total_questions"] = m_res.count if m_res.count is not None else len(m_res.data)
+
+            # Friends count
+            f_res = supabase.table("friendships").select("id", count="exact").eq("status", "accepted").or_(f"user_id.eq.{target_user_id},friend_id.eq.{target_user_id}").execute()
+            stats_data["total_friends"] = f_res.count if f_res.count is not None else 0
+            
+            # Achievements count
+            a_res = supabase.table("user_achievements").select("id", count="exact").eq("user_id", target_user_id).execute()
+            stats_data["total_achievements"] = a_res.count if a_res.count is not None else 0
+
+        except Exception as e:
+            log_error(f"Error fetching stats for {target_user_id}", e)
+
+        # 3. Fetch Achievements details
+        achievements = []
+        try:
+            ach_res = supabase.table("user_achievements").select("created_at, achievements(id, name, icon_url, description)").eq("user_id", target_user_id).execute()
+            if ach_res.data:
+                achievements = [
+                    {
+                        "id": a["achievements"]["id"],
+                        "name": a["achievements"]["name"], 
+                        "icon": a["achievements"]["icon_url"],
+                        "description": a["achievements"].get("description", ""),
+                        "unlocked_at": a["created_at"]
+                    } 
+                    for a in ach_res.data if a.get("achievements")
+                ]
+        except Exception as e:
+            pass
+
+        # 4. Check friendship status with current user
+        friendship_status = "none" # none, pending, accepted
+        try:
+             fr_res = supabase.table("friendships").select("status, user_id, friend_id").or_(
+                 f"and(user_id.eq.{user.id},friend_id.eq.{target_user_id}),and(user_id.eq.{target_user_id},friend_id.eq.{user.id})"
+             ).execute()
+             if fr_res.data:
+                 friendship_status = fr_res.data[0]["status"]
+                 # If pending, check who sent it
+                 if friendship_status == "pending":
+                     if fr_res.data[0]["user_id"] == user.id:
+                         friendship_status = "sent" # I sent request
+                     else:
+                         friendship_status = "received" # They sent request
+        except Exception as e:
+            pass
+
+        return {
+            "id": target_user["id"],
+            "name": target_user["name"],
+            "avatar_url": target_user["avatar_url"],
+            "bio": target_user.get("bio"),
+            "interests": target_user.get("interests") or [],
+            "created_at": target_user["created_at"],
+            "last_seen": target_user.get("last_seen"),
+            "allow_stranger_messages": target_user.get("allow_stranger_messages", True),
+            "stats": stats_data,
+            "achievements": achievements,
+            "friendship_status": friendship_status
+        }
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        log_error("Public profile error", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.put("/profile")
 async def update_profile(data: UserUpdate, user=Depends(get_current_user)):
     try:

@@ -110,9 +110,10 @@ async def get_community_v2():
         return res.data
     except Exception as e:
         print(f"Community V2 Error: {e}")
-        # Fallback
+        # Fallback - Try with simple select but ensure last_seen is requested
         try:
-             res = supabase.table("users").select("id, name, avatar_url").limit(50).execute()
+             # Even in fallback, try to get last_seen
+             res = supabase.table("users").select("id, name, avatar_url, last_seen").limit(50).execute()
              return res.data
         except:
              return []

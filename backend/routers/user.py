@@ -4,6 +4,7 @@ from backend.database import supabase
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
+from backend.logger import log_info, log_error
 
 router = APIRouter()
 
@@ -96,6 +97,10 @@ async def update_profile(data: UserUpdate, user=Depends(get_current_user)):
         # Always ensure email is present for the first insert if it doesn't exist
         if not update_data.get("email"):
             update_data["email"] = user.email
+            
+        # Also ensure name is present if not provided, fallback to metadata or email
+        if not update_data.get("name"):
+            update_data["name"] = user.user_metadata.get("full_name", user.email)
         
         # Explicitly return the inserted/updated row
         res = supabase.table("users").upsert(update_data).execute()

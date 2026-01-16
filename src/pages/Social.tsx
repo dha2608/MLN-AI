@@ -4,6 +4,7 @@ import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { clsx } from 'clsx';
 import { useSearchParams, useLocation } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 // Types
 interface User {
@@ -68,8 +69,24 @@ export default function Social() {
             if (friend) {
                 setSelectedFriend(friend);
             } else if (location.state?.targetUser) {
-                // If not in friends (e.g. new conversation), use passed state
+                // Check if user is trying to message someone not in friends list
+                // Since friends list might be empty initially, we should trust friends state if it has been fetched.
+                // But friends state is async.
+                
+                // Let's assume if we are navigated here with a targetUser, we want to try to chat.
+                // But we should enforce the "Must be friends" rule if strictly required.
+                // However, the user might be waiting for the friends list to load.
+                
+                // Better approach: Let them see the UI but maybe show a warning if not in friends list?
+                // The backend enforces it anyway.
+                
                 const target = location.state.targetUser;
+                
+                // Check if we already have friends loaded and this person is NOT in it
+                if (friends.length > 0 && !friends.find(f => f.id === target.id)) {
+                     // We can optionally block here or just let the backend handle the 403
+                }
+
                 // Adapt UserProfile to User interface
                 setSelectedFriend({
                     id: target.id,
@@ -189,10 +206,10 @@ export default function Social() {
     const sendFriendRequest = async (targetId: string) => {
         try {
             await api.post('/social/friends/request', { target_user_id: targetId });
-            alert("Đã gửi lời mời kết bạn!");
+            toast.success("Đã gửi lời mời kết bạn!");
             setSearchResults(prev => prev.filter(u => u.id !== targetId));
         } catch (error: any) {
-            alert(error.response?.data?.detail || "Gửi thất bại");
+            toast.error(error.response?.data?.detail || "Gửi thất bại");
         }
     };
 
@@ -218,7 +235,7 @@ export default function Social() {
             }
         } catch (error) {
             console.error("Failed to delete friend", error);
-            alert("Có lỗi xảy ra khi hủy kết bạn");
+            toast.error("Có lỗi xảy ra khi hủy kết bạn");
         }
     };
 

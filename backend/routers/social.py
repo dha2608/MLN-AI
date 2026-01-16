@@ -34,6 +34,9 @@ async def delete_friend(req: FriendRequest, user=Depends(get_current_user)):
     except Exception as e:
         log_error("Delete friend error", e)
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/friends/request")
+async def send_friend_request(req: FriendRequest, user=Depends(get_current_user)):
     try:
         sender_id = user.id
         target_id = req.target_user_id
@@ -70,6 +73,8 @@ async def delete_friend(req: FriendRequest, user=Depends(get_current_user)):
         }).execute()
         
         return {"message": "Request sent"}
+    except HTTPException as he:
+        raise he
     except Exception as e:
         log_error("Friend request error", e)
         raise HTTPException(status_code=500, detail=str(e))

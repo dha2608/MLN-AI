@@ -5,6 +5,7 @@ import { Search, UserPlus, MessageCircle, Ban } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
+import { clsx } from 'clsx';
 
 interface UserProfile {
     id: string;
@@ -49,7 +50,6 @@ export default function Community() {
                     table: 'users',
                 },
                 (payload) => {
-                    // console.log("Realtime Update Received:", payload);
                     const updatedUser = payload.new as UserProfile;
                     setUsers((prevUsers) => 
                         prevUsers.map((user) => 
@@ -59,7 +59,6 @@ export default function Community() {
                 }
             )
             .subscribe((status) => {
-                // console.log("Realtime Subscription Status:", status);
             });
 
         return () => {
@@ -109,7 +108,6 @@ export default function Community() {
         try {
             // Use V2 endpoint directly to bypass 500 issues
             const res = await api.get('/user/community_v2');
-            // console.log("Community Data:", res.data); // DEBUG
             setUsers(res.data);
         } catch (error) {
             console.error("Failed to fetch community V2", error);
@@ -135,116 +133,128 @@ export default function Community() {
     };
 
     const handleMessage = (user: UserProfile) => {
+        if (!friendIds.has(user.id)) {
+            toast.error("Bạn cần kết bạn trước khi nhắn tin!");
+            return;
+        }
         navigate(`/social?chat=${user.id}`, { state: { targetUser: user } });
     };
 
     const onlineCount = users.filter(u => u.id !== currentUser?.id && isUserOnline(u.last_seen)).length;
 
     return (
-        <div className="p-6 max-w-6xl mx-auto">
-            <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-                <div>
-                    <h1 className="text-3xl font-serif font-bold text-gray-900">Cộng đồng Học tập</h1>
-                    <p className="text-gray-500 mt-1">
-                        <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></span>
-                        {onlineCount} người đang online
-                    </p>
+        <div className="h-full overflow-y-auto bg-gray-50">
+            <div className="p-6 max-w-6xl mx-auto">
+                <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+                    <div>
+                        <h1 className="text-3xl font-serif font-bold text-gray-900">Cộng đồng Học tập</h1>
+                        <p className="text-gray-500 mt-1">
+                            <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></span>
+                            {onlineCount} người đang online
+                        </p>
+                    </div>
+                    
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <input 
+                            type="text" 
+                            placeholder="Tìm kiếm thành viên..." 
+                            className="pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-soviet-red-500 focus:outline-none w-full md:w-64"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
                 </div>
-                
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <input 
-                        type="text" 
-                        placeholder="Tìm kiếm thành viên..." 
-                        className="pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-soviet-red-500 focus:outline-none w-full md:w-64"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-            </div>
 
-            {loading ? (
-                <div className="text-center py-12">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-soviet-red-700 mx-auto"></div>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {users.filter(u => u.id !== currentUser?.id).map(user => {
-                        const isOnline = isUserOnline(user.last_seen);
-                        return (
-                            <div key={user.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col hover:shadow-md transition-shadow relative overflow-hidden">
-                                {isOnline && (
-                                    <div className="absolute top-0 right-0 bg-green-500 text-white text-xs px-2 py-1 rounded-bl-lg font-bold">
-                                        ONLINE
+                {loading ? (
+                    <div className="text-center py-12">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-soviet-red-700 mx-auto"></div>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-10">
+                        {users.filter(u => u.id !== currentUser?.id).map(user => {
+                            const isOnline = isUserOnline(user.last_seen);
+                            const isFriend = friendIds.has(user.id);
+                            return (
+                                <div key={user.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col hover:shadow-md transition-shadow relative overflow-hidden">
+                                    {isOnline && (
+                                        <div className="absolute top-0 right-0 bg-green-500 text-white text-xs px-2 py-1 rounded-bl-lg font-bold">
+                                            ONLINE
+                                        </div>
+                                    )}
+                                    
+                                    <div className="flex items-center mb-4">
+                                        <div className="h-16 w-16 rounded-full bg-gray-200 overflow-hidden border-2 border-white shadow-sm flex-shrink-0">
+                                            {user.avatar_url ? (
+                                                <img src={user.avatar_url} alt={user.name} className="h-full w-full object-cover" />
+                                            ) : (
+                                                <div className="h-full w-full flex items-center justify-center font-bold text-gray-500 text-xl">
+                                                    {user.name?.charAt(0).toUpperCase()}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="ml-4 min-w-0">
+                                            <h3 className="text-lg font-bold text-gray-900 truncate">{user.name}</h3>
+                                            <p className="text-sm text-gray-500 truncate">
+                                                {isOnline ? 'Đang hoạt động' : 'Offline'}
+                                            </p>
+                                        </div>
                                     </div>
-                                )}
-                                
-                                <div className="flex items-center mb-4">
-                                    <div className="h-16 w-16 rounded-full bg-gray-200 overflow-hidden border-2 border-white shadow-sm flex-shrink-0">
-                                        {user.avatar_url ? (
-                                            <img src={user.avatar_url} alt={user.name} className="h-full w-full object-cover" />
+                                    
+                                    <div className="flex-1">
+                                        {user.bio ? (
+                                            <p className="text-gray-600 text-sm mb-3 line-clamp-2">{user.bio}</p>
                                         ) : (
-                                            <div className="h-full w-full flex items-center justify-center font-bold text-gray-500 text-xl">
-                                                {user.name?.charAt(0).toUpperCase()}
+                                            <p className="text-gray-400 text-sm mb-3 italic">Chưa có giới thiệu</p>
+                                        )}
+                                        
+                                        {user.interests && user.interests.length > 0 && (
+                                            <div className="flex flex-wrap gap-2 mb-4">
+                                                {user.interests.slice(0, 3).map((tag, idx) => (
+                                                    <span key={idx} className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
+                                                        #{tag}
+                                                    </span>
+                                                ))}
+                                                {user.interests.length > 3 && (
+                                                    <span className="text-xs text-gray-400 self-center">+{user.interests.length - 3}</span>
+                                                )}
                                             </div>
                                         )}
                                     </div>
-                                    <div className="ml-4 min-w-0">
-                                        <h3 className="text-lg font-bold text-gray-900 truncate">{user.name}</h3>
-                                        <p className="text-sm text-gray-500 truncate">
-                                            {isOnline ? 'Đang hoạt động' : 'Offline'}
-                                        </p>
+                                    
+                                    <div className="flex space-x-2 mt-4 pt-4 border-t border-gray-100">
+                                        {!isFriend ? (
+                                            <button 
+                                                onClick={() => handleAddFriend(user.id)}
+                                                className="flex-1 flex items-center justify-center py-2 bg-soviet-red-50 text-soviet-red-700 rounded-lg text-sm font-medium hover:bg-soviet-red-100 transition-colors"
+                                            >
+                                                <UserPlus className="h-4 w-4 mr-1" />
+                                                Kết bạn
+                                            </button>
+                                        ) : (
+                                            <div className="flex-1 flex items-center justify-center py-2 bg-gray-50 text-gray-500 rounded-lg text-sm font-medium cursor-default">
+                                                <span className="flex items-center"><span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-2"></span>Bạn bè</span>
+                                            </div>
+                                        )}
+                                        <button 
+                                            onClick={() => handleMessage(user)}
+                                            className={clsx(
+                                                "flex-1 flex items-center justify-center py-2 rounded-lg text-sm font-medium transition-colors",
+                                                isFriend 
+                                                    ? "bg-blue-50 text-blue-700 hover:bg-blue-100" 
+                                                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                            )}
+                                        >
+                                            <MessageCircle className="h-4 w-4 mr-1" />
+                                            Nhắn tin
+                                        </button>
                                     </div>
                                 </div>
-                                
-                                <div className="flex-1">
-                                    {user.bio ? (
-                                        <p className="text-gray-600 text-sm mb-3 line-clamp-2">{user.bio}</p>
-                                    ) : (
-                                        <p className="text-gray-400 text-sm mb-3 italic">Chưa có giới thiệu</p>
-                                    )}
-                                    
-                                    {user.interests && user.interests.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 mb-4">
-                                            {user.interests.slice(0, 3).map((tag, idx) => (
-                                                <span key={idx} className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
-                                                    #{tag}
-                                                </span>
-                                            ))}
-                                            {user.interests.length > 3 && (
-                                                <span className="text-xs text-gray-400 self-center">+{user.interests.length - 3}</span>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                                
-                                <div className="flex space-x-2 mt-4 pt-4 border-t border-gray-100">
-                                    {!friendIds.has(user.id) ? (
-                                        <button 
-                                            onClick={() => handleAddFriend(user.id)}
-                                            className="flex-1 flex items-center justify-center py-2 bg-soviet-red-50 text-soviet-red-700 rounded-lg text-sm font-medium hover:bg-soviet-red-100 transition-colors"
-                                        >
-                                            <UserPlus className="h-4 w-4 mr-1" />
-                                            Kết bạn
-                                        </button>
-                                    ) : (
-                                        <div className="flex-1 flex items-center justify-center py-2 bg-gray-50 text-gray-500 rounded-lg text-sm font-medium cursor-default">
-                                            <span className="flex items-center"><span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-2"></span>Bạn bè</span>
-                                        </div>
-                                    )}
-                                    <button 
-                                        onClick={() => handleMessage(user)}
-                                        className="flex-1 flex items-center justify-center py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors"
-                                    >
-                                        <MessageCircle className="h-4 w-4 mr-1" />
-                                        Nhắn tin
-                                    </button>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

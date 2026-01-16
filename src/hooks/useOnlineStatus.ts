@@ -19,12 +19,12 @@ export function useOnlineStatus() {
             sendHeartbeat();
         }
 
-        // Start interval
+        // Start interval - Reduced to 15s for better sync
         intervalRef.current = setInterval(() => {
             if (user && document.visibilityState === 'visible') {
                 sendHeartbeat();
             }
-        }, 30000); // 30s
+        }, 15000); // 15s
 
         return () => {
             window.removeEventListener('online', handleOnline);

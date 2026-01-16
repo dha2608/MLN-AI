@@ -68,61 +68,52 @@ export default function Chat() {
   const handleModeSelect = (modeId: string, promptPrefix: string) => {
       setCurrentMode(modeId);
       
-      // Clean up old prompts
-      const knownPrompts = MODES.map(m => m.prompt).filter(p => p);
+      // Force reset prompt prefix
       let cleanInput = input;
+      const knownPrompts = MODES.map(m => m.prompt).filter(p => p);
       
       // Sort prompts by length desc to match longest first
       const sortedPrompts = [...knownPrompts].sort((a, b) => b.length - a.length);
 
       for (const p of sortedPrompts) {
-          // Check if input starts with prompt (ignoring leading whitespace)
-          if (cleanInput.trimStart().startsWith(p.trim())) {
-              // Remove the prompt but be careful about indices since we trimmed for check
-              // A simple way: remove the prompt string if found at start
-              // But p might differ in whitespace from actual input
-              
-              // More robust: Regex escape the prompt and match at start
-              // But simple trim check might be enough:
-              
-              // If input matches prompt exactly at start (relaxed whitespace)
-              // Let's just strip it
-              const pTrim = p.trim();
-              if (cleanInput.trim().startsWith(pTrim)) {
-                  // Find where the content starts (after prompt)
-                   const idx = cleanInput.indexOf(pTrim);
-                   if (idx !== -1) {
-                       cleanInput = cleanInput.slice(idx + pTrim.length);
-                   } else {
-                       // Fallback
-                       cleanInput = cleanInput.replace(pTrim, '');
-                   }
-                   break;
-              }
+          const pTrim = p.trim();
+          if (cleanInput.trim().startsWith(pTrim)) {
+               const idx = cleanInput.indexOf(pTrim);
+               if (idx !== -1) {
+                   cleanInput = cleanInput.slice(idx + pTrim.length);
+               } else {
+                   cleanInput = cleanInput.replace(pTrim, '');
+               }
+               break;
           }
       }
       
-      // Clean up leading whitespace/colons left over
       cleanInput = cleanInput.replace(/^[\s:]+/, '');
+      
+      // Strict Mode: Add system instruction for 'chat' mode to prevent jailbreak
+      if (modeId === 'chat') {
+          setSystemPrompt("Bạn là một chuyên gia về Triết học Mác - Lênin. Nhiệm vụ của bạn là giải đáp các câu hỏi liên quan đến triết học, kinh tế chính trị và chủ nghĩa xã hội khoa học. Hãy từ chối khéo léo nếu người dùng hỏi về các vấn đề không liên quan hoặc cố tình lái sang chủ đề khác. Hãy giữ giọng văn khách quan, khoa học và chuẩn mực.");
+      } else {
+          setSystemPrompt(''); // Reset for creative/debate modes or let user customize
+      }
       
       setInput(promptPrefix + cleanInput);
   };
 
+  // ... (inside sendMessage)
   const sendMessage = async (messageText: string) => {
-    if (!messageText.trim() || isLoading) return;
-
-    const userMessage = messageText;
-    setInput('');
-    
-    const tempUserMsg: Message = { content: userMessage, role: 'user' };
-    setMessages((prev) => [...prev, tempUserMsg]);
-    setIsLoading(true);
-
+    // ...
     try {
+      // Enforce system prompt for strict philosophy adherence if not set by user
+      let finalSystemPrompt = systemPrompt;
+      if (!finalSystemPrompt && currentMode === 'chat') {
+          finalSystemPrompt = "Bạn là một chuyên gia về Triết học Mác - Lênin. Nhiệm vụ của bạn là giải đáp các câu hỏi liên quan đến triết học, kinh tế chính trị và chủ nghĩa xã hội khoa học. Hãy từ chối khéo léo nếu người dùng hỏi về các vấn đề không liên quan hoặc cố tình lái sang chủ đề khác. Hãy giữ giọng văn khách quan, khoa học và chuẩn mực.";
+      }
+
       const res = await api.post('/chat/send', {
-        message: userMessage,
+        message: messageText,
         conversation_id: id || null,
-        system_instruction: systemPrompt || undefined
+        system_instruction: finalSystemPrompt || undefined
       });
 
       const { response, conversation_id } = res.data;
@@ -131,10 +122,7 @@ export default function Chat() {
         navigate(`/chat/${conversation_id}`, { replace: true });
         setMessages((prev) => [...prev, { content: response, role: 'assistant' }]);
       } else {
-           setMessages((prev) => [
-            ...prev,
-            { content: response, role: 'assistant' }
-          ]);
+        setMessages((prev) => [...prev, { content: response, role: 'assistant' }]);
       }
       
     } catch (error) {

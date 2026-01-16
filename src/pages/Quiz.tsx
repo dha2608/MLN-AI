@@ -428,19 +428,19 @@ export default function Quiz() {
                 </div>
 
                 {/* Footer Controls */}
-                <div className="mt-8 flex justify-end pb-10">
+                <div className="mt-8 flex justify-end pb-10 sticky bottom-0 bg-gray-50/95 backdrop-blur-sm pt-4 border-t border-gray-100 z-10 -mx-4 px-4 sm:mx-0 sm:px-0 sm:static sm:bg-transparent sm:border-0 sm:pt-0">
                     {!isAnswered ? (
                         <button
                             onClick={handleSubmit}
                             disabled={selectedOption === null}
-                            className="px-8 py-3 bg-soviet-red-700 text-white rounded-xl font-medium shadow-md hover:bg-soviet-red-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                            className="px-8 py-3 bg-soviet-red-700 text-white rounded-xl font-medium shadow-md hover:bg-soviet-red-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all w-full md:w-auto"
                         >
                             Trả lời
                         </button>
                     ) : (
                         <button
                             onClick={handleNext}
-                            className="px-8 py-3 bg-gray-900 text-white rounded-xl font-medium shadow-md hover:bg-black transition-all flex items-center"
+                            className="px-8 py-3 bg-gray-900 text-white rounded-xl font-medium shadow-md hover:bg-black transition-all flex items-center justify-center w-full md:w-auto"
                         >
                             {currentQuestionIdx < questions.length - 1 ? "Câu tiếp theo" : "Xem kết quả"}
                             <ArrowRight className="ml-2 h-5 w-5" />

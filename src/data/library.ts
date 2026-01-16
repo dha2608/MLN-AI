@@ -645,7 +645,7 @@ Chuyên chính vô sản là việc giai cấp công nhân nắm quyền lực n
                 title: 'Vladimir Ilyich Lenin (V.I. Lênin)', 
                 year: '1870 - 1924',
                 desc: 'Lãnh tụ vĩ đại của Cách mạng Tháng Mười Nga, người phát triển chủ nghĩa Mác trong thời đại đế quốc chủ nghĩa.',
-                image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Vladimir_Lenin_1920.jpg/440px-Vladimir_Lenin_1920.jpg',
+                image: 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?q=80&w=1000&auto=format&fit=crop', // Lenin (alternative)
                 content: `
                 **Vladimir Ilyich Lenin** (22/4/1870 – 21/1/1924) là nhà lý luận chính trị, nhà cách mạng người Nga, lãnh tụ của Đảng Bolshevik và Cách mạng Tháng Mười Nga (1917).
 
@@ -685,7 +685,7 @@ Chuyên chính vô sản là việc giai cấp công nhân nắm quyền lực n
                 title: 'Ludwig Feuerbach (Phơ-bách)',
                 year: '1804 - 1872',
                 desc: 'Nhà triết học duy vật nhân bản, cầu nối giữa triết học Hegel và triết học Marx.',
-                image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Ludwig_Feuerbach.jpg/440px-Ludwig_Feuerbach.jpg',
+                image: 'https://images.unsplash.com/photo-1535905557558-afc4877a26fc?q=80&w=1000&auto=format&fit=crop', // Statue/Philosophy
                 content: `
                 Feuerbach đã khôi phục lại vị trí của chủ nghĩa duy vật, phê phán chủ nghĩa duy tâm và tôn giáo. Tuy nhiên, chủ nghĩa duy vật của ông còn mang tính siêu hình và duy tâm về lịch sử. Marx và Engels đã kế thừa chủ nghĩa duy vật của Feuerbach để xây dựng nên chủ nghĩa duy vật biện chứng.
                 `
@@ -725,7 +725,7 @@ Che Guevara là nhà cách mạng người Argentina, một trong những lãnh 
                 title: 'Võ Nguyên Giáp',
                 year: '1911 - 2013',
                 desc: 'Đại tướng đầu tiên của QĐND Việt Nam, thiên tài quân sự thế giới.',
-                image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Vo_Nguyen_Giap_1967.jpg/440px-Vo_Nguyen_Giap_1967.jpg',
+                image: 'https://images.unsplash.com/photo-1579965342575-16428a7c8881?q=80&w=1000&auto=format&fit=crop', // Military/History alternative
                 content: `
                 Đại tướng Võ Nguyên Giáp là người học trò xuất sắc của Chủ tịch Hồ Chí Minh. Ông nổi tiếng với chiến lược "Chiến tranh nhân dân" và chiến thắng Điện Biên Phủ "lừng lẫy năm châu, chấn động địa cầu", đánh bại thực dân Pháp và sau đó là đế quốc Mỹ.
                 `

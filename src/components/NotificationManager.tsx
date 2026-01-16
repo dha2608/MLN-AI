@@ -3,6 +3,7 @@ import { useNotificationStore } from '@/store/notificationStore';
 import { useAuthStore } from '@/store/authStore';
 import toast from 'react-hot-toast';
 import { Bell } from 'lucide-react';
+import { supabase } from '@/lib/api';
 
 export default function NotificationManager() {
     const { user } = useAuthStore();
@@ -16,15 +17,50 @@ export default function NotificationManager() {
         // Initial fetch
         fetchNotifications();
 
-        // Poll every 30s
+        // Realtime Subscription
+        const channel = supabase
+            .channel('public:notifications')
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'notifications',
+                    filter: `user_id=eq.${user.id}`
+                },
+                (payload) => {
+                    // New notification received!
+                    fetchNotifications(); // Refresh list
+                    
+                    // Show toast immediately
+                    const newNotif = payload.new as any;
+                    toast((t) => (
+                        <div className="flex items-start" onClick={() => toast.dismiss(t.id)}>
+                             <div className="bg-blue-100 p-2 rounded-full mr-3 text-blue-600 mt-1">
+                                <Bell className="h-4 w-4" />
+                            </div>
+                            <div className="flex-1">
+                                <h4 className="font-bold text-gray-900 text-sm">{newNotif.title}</h4>
+                                <p className="text-gray-600 text-sm mt-1">{newNotif.content}</p>
+                            </div>
+                        </div>
+                    ), { duration: 5000 });
+                }
+            )
+            .subscribe();
+
+        // Fallback polling (keep it just in case connection drops)
         const interval = setInterval(() => {
             fetchNotifications();
-        }, 30000);
+        }, 60000); // Relaxed to 60s
 
-        return () => clearInterval(interval);
+        return () => {
+            supabase.removeChannel(channel);
+            clearInterval(interval);
+        };
     }, [user]);
 
-    // Check for new notifications to show toast
+    // Check for offline -> online notifications (Welcome back)
     useEffect(() => {
         if (!user || notifications.length === 0) return;
 

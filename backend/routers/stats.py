@@ -101,11 +101,11 @@ async def get_statistics(user=Depends(get_current_user)):
             log_error("DB Error fetching total questions", e)
             total_questions_community = 0
         
-        # Calculate active users (Last seen < 1 hour)
+        # Calculate active users (Last seen < 5 minutes)
         try:
-            one_hour_ago = (datetime.now() - timedelta(hours=1)).isoformat()
-            # Count users with last_seen > 1 hour ago
-            active_users_res = supabase.table("users").select("id", count="exact").gt("last_seen", one_hour_ago).execute()
+            five_mins_ago = (datetime.now() - timedelta(minutes=5)).isoformat()
+            # Count users with last_seen > 5 minutes ago
+            active_users_res = supabase.table("users").select("id", count="exact").gt("last_seen", five_mins_ago).execute()
             
             if active_users_res.count is not None:
                 active_now = active_users_res.count

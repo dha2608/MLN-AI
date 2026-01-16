@@ -1,6 +1,6 @@
 import { useAuthStore } from '@/store/authStore';
 import { useState, useRef, useEffect } from 'react';
-import api from '@/lib/api';
+import api, { supabase } from '@/lib/api';
 import { isUserOnline } from '@/hooks/useOnlineStatus';
 import toast from 'react-hot-toast';
 import { Camera, Edit2, Save, X, Shield, Activity, Trophy, MessageSquare, UserPlus, Check, ArrowLeft } from 'lucide-react';
@@ -36,6 +36,37 @@ export default function Profile() {
           fetchAllAchievements();
       }
   }, [userId, user?.id]);
+
+  // Realtime subscription for Profile Status
+  useEffect(() => {
+      if (!profileData?.id) return;
+
+      const channel = supabase
+        .channel(`profile:${profileData.id}`)
+        .on(
+            'postgres_changes',
+            {
+                event: 'UPDATE',
+                schema: 'public',
+                table: 'users',
+                filter: `id=eq.${profileData.id}`
+            },
+            (payload) => {
+                const newUser = payload.new as any;
+                if (newUser.last_seen) {
+                    setProfileData((prev: any) => ({
+                        ...prev,
+                        last_seen: newUser.last_seen
+                    }));
+                }
+            }
+        )
+        .subscribe();
+
+      return () => {
+          supabase.removeChannel(channel);
+      };
+  }, [profileData?.id]);
 
   const fetchAllAchievements = async () => {
       try {

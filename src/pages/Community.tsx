@@ -93,6 +93,7 @@ export default function Community() {
         try {
             // Use V2 endpoint directly to bypass 500 issues
             const res = await api.get('/user/community_v2');
+            console.log("Community Data:", res.data); // DEBUG
             setUsers(res.data);
         } catch (error) {
             console.error("Failed to fetch community V2", error);

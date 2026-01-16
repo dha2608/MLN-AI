@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import api from '@/lib/api';
+import api, { supabase } from '@/lib/api';
 import { isUserOnline } from '@/hooks/useOnlineStatus';
 import { Search, UserPlus, MessageCircle, Ban } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -20,6 +20,33 @@ export default function Community() {
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const navigate = useNavigate();
+
+    // Realtime subscription for online status
+    useEffect(() => {
+        const channel = supabase
+            .channel('public:users')
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'users',
+                },
+                (payload) => {
+                    const updatedUser = payload.new as UserProfile;
+                    setUsers((prevUsers) => 
+                        prevUsers.map((user) => 
+                            user.id === updatedUser.id ? { ...user, last_seen: updatedUser.last_seen } : user
+                        )
+                    );
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, []);
 
     // Debounce search term
     useEffect(() => {

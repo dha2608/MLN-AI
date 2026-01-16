@@ -59,6 +59,6 @@ export function isUserOnline(lastSeen: string | null) {
     if (!lastSeen) return false;
     const last = new Date(lastSeen).getTime();
     const now = new Date().getTime();
-    // Consider online if seen within last 2 minutes
-    return (now - last) < 2 * 60 * 1000;
+    // Consider online if seen within last 5 minutes (relaxed check)
+    return (now - last) < 5 * 60 * 1000;
 }

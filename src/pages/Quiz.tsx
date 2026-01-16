@@ -149,18 +149,22 @@ export default function Quiz() {
                 
                 if (!statusRes.data.can_take_quiz) return;
 
-                // 2. Fetch AI questions
+                // 2. Fetch AI questions with timeout race
                 try {
-                    const quizRes = await api.get('/quiz/generate');
+                    const fetchPromise = api.get('/quiz/generate');
+                    const timeoutPromise = new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error("Timeout")), 6000)
+                    );
+
+                    const quizRes: any = await Promise.race([fetchPromise, timeoutPromise]);
+                    
                     if (quizRes.data.questions && quizRes.data.questions.length > 0) {
                         setQuestions(quizRes.data.questions);
                     } else {
-                        // Fallback
-                        const shuffled = [...POOL_QUESTIONS].sort(() => 0.5 - Math.random());
-                        setQuestions(shuffled.slice(0, 5));
+                        throw new Error("No questions returned");
                     }
                 } catch (e) {
-                    console.error("Failed to generate quiz, using fallback", e);
+                    console.warn("Using fallback questions (AI too slow or failed)");
                     const shuffled = [...POOL_QUESTIONS].sort(() => 0.5 - Math.random());
                     setQuestions(shuffled.slice(0, 5));
                 }
@@ -179,9 +183,12 @@ export default function Quiz() {
 
     if ((!canTakeQuiz && !showResult) || questions.length === 0) {
         return (
-            <div className="flex h-full bg-gray-50 items-center justify-center font-sans">
+            <div className="flex h-full bg-gray-50 items-center justify-center font-sans p-4">
                 {questions.length === 0 ? (
-                    <div className="animate-pulse text-soviet-red-700">Đang tải câu hỏi...</div>
+                    <div className="flex flex-col items-center">
+                        <div className="w-16 h-16 border-4 border-soviet-red-200 border-t-soviet-red-700 rounded-full animate-spin mb-4"></div>
+                        <div className="text-soviet-red-700 font-medium animate-pulse">Đang chuẩn bị câu hỏi...</div>
+                    </div>
                 ) : (
                     <motion.div 
                         initial={{ scale: 0.9, opacity: 0 }}
@@ -292,8 +299,8 @@ export default function Quiz() {
     }
 
     return (
-        <div className="flex h-full bg-gray-50 overflow-hidden font-sans">
-            <div className="max-w-4xl mx-auto w-full py-10 px-4 sm:px-6 lg:px-8 flex flex-col h-full">
+        <div className="flex flex-col h-full bg-gray-50 overflow-y-auto font-sans">
+            <div className="max-w-4xl mx-auto w-full py-10 px-4 sm:px-6 lg:px-8 flex flex-col min-h-full">
                 
                 {/* Header */}
                 <div className="mb-8">
@@ -377,7 +384,7 @@ export default function Quiz() {
                 </div>
 
                 {/* Footer Controls */}
-                <div className="mt-8 flex justify-end">
+                <div className="mt-8 flex justify-end pb-10">
                     {!isAnswered ? (
                         <button
                             onClick={handleSubmit}

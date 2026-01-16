@@ -21,10 +21,24 @@ export default function Community() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [friendIds, setFriendIds] = useState<Set<string>>(new Set());
     const navigate = useNavigate();
+
+    const fetchFriends = async () => {
+        if (!currentUser) return;
+        try {
+            const res = await api.get('/social/friends');
+            if (Array.isArray(res.data)) {
+                setFriendIds(new Set(res.data.map((f: any) => f.id)));
+            }
+        } catch (error) {
+            console.error("Failed to fetch friends status", error);
+        }
+    };
 
     // Realtime subscription for online status
     useEffect(() => {
+        fetchFriends();
         const channel = supabase
             .channel('public:users')
             .on(
@@ -35,7 +49,7 @@ export default function Community() {
                     table: 'users',
                 },
                 (payload) => {
-                    console.log("Realtime Update Received:", payload);
+                    // console.log("Realtime Update Received:", payload);
                     const updatedUser = payload.new as UserProfile;
                     setUsers((prevUsers) => 
                         prevUsers.map((user) => 
@@ -45,7 +59,7 @@ export default function Community() {
                 }
             )
             .subscribe((status) => {
-                console.log("Realtime Subscription Status:", status);
+                // console.log("Realtime Subscription Status:", status);
             });
 
         return () => {
@@ -95,7 +109,7 @@ export default function Community() {
         try {
             // Use V2 endpoint directly to bypass 500 issues
             const res = await api.get('/user/community_v2');
-            console.log("Community Data:", res.data); // DEBUG
+            // console.log("Community Data:", res.data); // DEBUG
             setUsers(res.data);
         } catch (error) {
             console.error("Failed to fetch community V2", error);
@@ -120,8 +134,8 @@ export default function Community() {
         }
     };
 
-    const handleMessage = (userId: string) => {
-        navigate(`/social?chat=${userId}`);
+    const handleMessage = (user: UserProfile) => {
+        navigate(`/social?chat=${user.id}`, { state: { targetUser: user } });
     };
 
     const onlineCount = users.filter(u => u.id !== currentUser?.id && isUserOnline(u.last_seen)).length;
@@ -205,15 +219,21 @@ export default function Community() {
                                 </div>
                                 
                                 <div className="flex space-x-2 mt-4 pt-4 border-t border-gray-100">
+                                    {!friendIds.has(user.id) ? (
+                                        <button 
+                                            onClick={() => handleAddFriend(user.id)}
+                                            className="flex-1 flex items-center justify-center py-2 bg-soviet-red-50 text-soviet-red-700 rounded-lg text-sm font-medium hover:bg-soviet-red-100 transition-colors"
+                                        >
+                                            <UserPlus className="h-4 w-4 mr-1" />
+                                            Kết bạn
+                                        </button>
+                                    ) : (
+                                        <div className="flex-1 flex items-center justify-center py-2 bg-gray-50 text-gray-500 rounded-lg text-sm font-medium cursor-default">
+                                            <span className="flex items-center"><span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-2"></span>Bạn bè</span>
+                                        </div>
+                                    )}
                                     <button 
-                                        onClick={() => handleAddFriend(user.id)}
-                                        className="flex-1 flex items-center justify-center py-2 bg-soviet-red-50 text-soviet-red-700 rounded-lg text-sm font-medium hover:bg-soviet-red-100 transition-colors"
-                                    >
-                                        <UserPlus className="h-4 w-4 mr-1" />
-                                        Kết bạn
-                                    </button>
-                                    <button 
-                                        onClick={() => handleMessage(user.id)}
+                                        onClick={() => handleMessage(user)}
                                         className="flex-1 flex items-center justify-center py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors"
                                     >
                                         <MessageCircle className="h-4 w-4 mr-1" />

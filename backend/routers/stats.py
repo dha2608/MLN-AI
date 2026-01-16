@@ -97,37 +97,44 @@ async def get_statistics(user=Depends(get_current_user)):
             log_error("DB Error fetching total questions", e)
             total_questions_community = 0
         
-        # Calculate active users
+        # Calculate active users (Last seen < 1 hour)
         try:
-            yesterday = (datetime.now() - timedelta(days=1)).isoformat()
-            # Query conversations that have been updated recently (proxy for activity)
-            # OR Query messages joined with conversations to get user_id.
-            # Simpler: Get active conversations.
+            one_hour_ago = (datetime.now() - timedelta(hours=1)).isoformat()
+            # Count users with last_seen > 1 hour ago
+            active_users_res = supabase.table("users").select("id", count="exact").gt("last_seen", one_hour_ago).execute()
             
-            # Using Supabase syntax for inner join to get user_id from conversations via messages
-            # But deep filtering is complex.
-            # Let's just count unique users who have updated their conversations in the last 24h.
-            # This captures users who chatted.
-            
-            active_users_res = supabase.table("conversations").select("user_id")\
-                .gte("updated_at", yesterday)\
-                .execute()
-            
-            if active_users_res.data:
-                unique_active = set(c['user_id'] for c in active_users_res.data)
-                active_now = len(unique_active)
+            if active_users_res.count is not None:
+                active_now = active_users_res.count
             else:
-                active_now = 0
+                active_now = len(active_users_res.data)
                 
         except Exception as e:
             log_error("DB Error fetching active users", e)
             active_now = 0
+
+        # Friends & Achievements Stats
+        friends_count = 0
+        achievements_count = 0
+        try:
+            # Count accepted friendships
+            f_res = supabase.table("friendships").select("id", count="exact").eq("status", "accepted").or_(f"user_id.eq.{user_id},friend_id.eq.{user_id}").execute()
+            friends_count = f_res.count if f_res.count is not None else len(f_res.data)
+            
+            # Count unlocked achievements
+            a_res = supabase.table("user_achievements").select("id", count="exact").eq("user_id", user_id).execute()
+            achievements_count = a_res.count if a_res.count is not None else len(a_res.data)
+        except Exception as e:
+            log_error("DB Error fetching personal extras", e)
 
         community_stats = {
             "total_users": total_users,
             "total_questions_community": total_questions_community,
             "active_now": active_now
         }
+        
+        # Add to personal stats
+        personal_stats["total_friends"] = friends_count
+        personal_stats["total_achievements"] = achievements_count
 
         return {
             "personal": personal_stats,

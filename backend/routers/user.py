@@ -55,10 +55,16 @@ async def get_profile(user=Depends(get_current_user)):
 
         # Fetch achievements
         try:
-            ach_res = supabase.table("user_achievements").select("achievements(name, icon_url)").eq("user_id", user.id).execute()
+            ach_res = supabase.table("user_achievements").select("created_at, achievements(id, name, icon_url, description)").eq("user_id", user.id).execute()
             if ach_res.data:
                 user_data["achievements"] = [
-                    {"name": a["achievements"]["name"], "icon": a["achievements"]["icon_url"]} 
+                    {
+                        "id": a["achievements"]["id"],
+                        "name": a["achievements"]["name"], 
+                        "icon": a["achievements"]["icon_url"],
+                        "description": a["achievements"].get("description", ""),
+                        "unlocked_at": a["created_at"]
+                    } 
                     for a in ach_res.data if a.get("achievements")
                 ]
         except Exception as e:
@@ -84,13 +90,14 @@ async def update_profile(data: UserUpdate, user=Depends(get_current_user)):
             return {"message": "No changes"}
 
         # Upsert into public.users
-        # Note: 'email' is usually unique/PK depending on setup, but 'id' is definitely PK.
+        # Ensure we have the ID to conflict on
         update_data["id"] = user.id
         
-        # We don't need to force email update if it's not provided, but ensuring it exists is good.
+        # Always ensure email is present for the first insert if it doesn't exist
         if not update_data.get("email"):
             update_data["email"] = user.email
         
+        # Explicitly return the inserted/updated row
         res = supabase.table("users").upsert(update_data).execute()
         
         if not res.data:
@@ -104,6 +111,15 @@ async def update_profile(data: UserUpdate, user=Depends(get_current_user)):
         if "policy" in str(e).lower():
              raise HTTPException(status_code=403, detail="Bạn không có quyền cập nhật hồ sơ này (RLS Policy).")
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/achievements/all")
+async def get_all_achievements():
+    try:
+        # Fetch all available achievements
+        res = supabase.table("achievements").select("*").execute()
+        return res.data
+    except Exception as e:
+        return []
 
 @router.post("/heartbeat")
 async def send_heartbeat(user=Depends(get_current_user)):

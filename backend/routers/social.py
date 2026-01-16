@@ -19,8 +19,21 @@ class SendMessage(BaseModel):
 
 # --- Friends ---
 
-@router.post("/friends/request")
-async def send_friend_request(req: FriendRequest, user=Depends(get_current_user)):
+@router.post("/friends/delete")
+async def delete_friend(req: FriendRequest, user=Depends(get_current_user)):
+    try:
+        sender_id = user.id
+        target_id = req.target_user_id
+        
+        # Delete friendship where (user_id=me AND friend_id=target) OR (user_id=target AND friend_id=me)
+        res = supabase.table("friendships").delete().or_(
+            f"and(user_id.eq.{sender_id},friend_id.eq.{target_id}),and(user_id.eq.{target_id},friend_id.eq.{sender_id})"
+        ).execute()
+        
+        return {"message": "Friend removed"}
+    except Exception as e:
+        log_error("Delete friend error", e)
+        raise HTTPException(status_code=500, detail=str(e))
     try:
         sender_id = user.id
         target_id = req.target_user_id

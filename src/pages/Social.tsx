@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { Users, UserPlus, MessageSquare, Bell, Search, Send, X, Clock } from 'lucide-react';
+import { Users, UserPlus, MessageSquare, Bell, Search, Send, X, Clock, Trash2 } from 'lucide-react';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { clsx } from 'clsx';
+import { useSearchParams, useLocation } from 'react-router-dom';
 
 // Types
 interface User {
@@ -38,6 +39,8 @@ interface Notification {
 export default function Social() {
     const { user } = useAuthStore();
     const [activeTab, setActiveTab] = useState<'friends' | 'messages' | 'notifications'>('friends');
+    const [searchParams] = useSearchParams();
+    const location = useLocation();
     
     // State
     const [friends, setFriends] = useState<User[]>([]);
@@ -56,6 +59,28 @@ export default function Social() {
     const [isLoading, setIsLoading] = useState(false);
 
     // --- Effects ---
+    useEffect(() => {
+        const chatId = searchParams.get('chat');
+        if (chatId) {
+            setActiveTab('messages');
+            // Check if already in friends list
+            const friend = friends.find(f => f.id === chatId);
+            if (friend) {
+                setSelectedFriend(friend);
+            } else if (location.state?.targetUser) {
+                // If not in friends (e.g. new conversation), use passed state
+                const target = location.state.targetUser;
+                // Adapt UserProfile to User interface
+                setSelectedFriend({
+                    id: target.id,
+                    name: target.name,
+                    email: target.email || '',
+                    avatar_url: target.avatar_url
+                });
+            }
+        }
+    }, [searchParams, friends, location.state]);
+
     useEffect(() => {
         fetchData();
         // Poll for notifications every 30s (Simple "Realtime")
@@ -178,6 +203,22 @@ export default function Social() {
             fetchFriends();
         } catch (error) {
             console.error("Accept failed", error);
+        }
+    };
+
+    const handleDeleteFriend = async (e: React.MouseEvent, friendId: string, friendName: string) => {
+        e.stopPropagation(); // Prevent opening chat
+        if (!window.confirm(`Bạn có chắc muốn hủy kết bạn với ${friendName}?`)) return;
+        
+        try {
+            await api.delete(`/social/friends/${friendId}`);
+            setFriends(prev => prev.filter(f => f.id !== friendId));
+            if (selectedFriend?.id === friendId) {
+                setSelectedFriend(null);
+            }
+        } catch (error) {
+            console.error("Failed to delete friend", error);
+            alert("Có lỗi xảy ra khi hủy kết bạn");
         }
     };
 
@@ -339,7 +380,16 @@ export default function Social() {
                                                 <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div> Online
                                             </div>
                                         </div>
-                                        <MessageSquare className="ml-auto text-gray-300 h-5 w-5" />
+                                        <div className="ml-auto flex space-x-2">
+                                            <button 
+                                                onClick={(e) => handleDeleteFriend(e, friend.id, friend.name)}
+                                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                                                title="Hủy kết bạn"
+                                            >
+                                                <Trash2 className="h-5 w-5" />
+                                            </button>
+                                            <MessageSquare className="text-gray-300 h-5 w-5 self-center" />
+                                        </div>
                                     </div>
                                 ))}
                                 {friends.length === 0 && (

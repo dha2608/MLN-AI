@@ -37,18 +37,18 @@ export function useOnlineStatus() {
         try {
             // Direct update via Supabase client (more robust than backend proxy)
             if (user?.id) {
-                console.log("Sending heartbeat for:", user.id);
+                // console.log("Sending heartbeat for:", user.id);
                 const { error } = await supabase
                     .from('users')
                     .update({ last_seen: new Date().toISOString() })
                     .eq('id', user.id);
                 
                 if (error) {
-                    console.error("Heartbeat RLS Error:", error);
+                    // console.error("Heartbeat RLS Error:", error);
                     // Fallback to backend if direct update fails (e.g. RLS issues)
                     await api.post('/user/heartbeat');
                 } else {
-                    console.log("Heartbeat success");
+                    // console.log("Heartbeat success");
                 }
             }
         } catch (e) {

@@ -4,6 +4,7 @@ import api from '@/lib/api';
 import toast from 'react-hot-toast';
 import { Camera, Edit2, Save, X, Shield, Lock, Activity, Trophy, MessageSquare } from 'lucide-react';
 import { isUserOnline } from '@/hooks/useOnlineStatus';
+import { clsx } from 'clsx';
 
 export default function Profile() {
   const { user, setSession } = useAuthStore();
@@ -15,12 +16,34 @@ export default function Profile() {
   const [allowStrangers, setAllowStrangers] = useState(true);
   const [loading, setLoading] = useState(false);
   const [fullProfile, setFullProfile] = useState<any>(null);
+  const [allAchievements, setAllAchievements] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
       fetchProfile();
+      fetchAllAchievements();
+      fetchStats();
   }, [user?.id]);
+
+  const fetchAllAchievements = async () => {
+      try {
+          const res = await api.get('/user/achievements/all');
+          setAllAchievements(res.data || []);
+      } catch (error) {
+          console.error("Fetch achievements error", error);
+      }
+  };
+
+  const fetchStats = async () => {
+      try {
+          const res = await api.get('/stats/overview');
+          setStats(res.data);
+      } catch (error) {
+          console.error("Fetch stats error", error);
+      }
+  };
 
   const fetchProfile = async () => {
       try {
@@ -255,31 +278,54 @@ export default function Profile() {
                                 <Trophy className="h-4 w-4 mr-2 text-yellow-500" />
                                 Thành tựu
                             </h3>
-                            {fullProfile?.achievements && fullProfile.achievements.length > 0 ? (
-                                <div className="space-y-2">
-                                    {fullProfile.achievements.map((ach: any, idx: number) => (
-                                        <div key={idx} className="flex items-center text-sm">
-                                            <span className="text-lg mr-2">{ach.icon || '🏅'}</span>
-                                            <span className="text-gray-700">{ach.name}</span>
-                                        </div>
-                                    ))}
+                            {allAchievements.length > 0 ? (
+                                <div className="grid grid-cols-2 gap-3">
+                                    {allAchievements.map((ach: any) => {
+                                        const userAch = fullProfile?.achievements?.find((ua: any) => ua.id === ach.id);
+                                        const isUnlocked = !!userAch;
+                                        
+                                        return (
+                                            <div key={ach.id} className={clsx("p-2 rounded-lg border flex flex-col items-center text-center transition-all relative overflow-hidden", isUnlocked ? "bg-yellow-50 border-yellow-200 shadow-sm" : "bg-gray-50 border-gray-100 opacity-60 grayscale")}>
+                                                <div className="text-2xl mb-1">{ach.icon_url || '🏅'}</div>
+                                                <div className="font-bold text-gray-900 text-xs mb-1 line-clamp-1" title={ach.name}>{ach.name}</div>
+                                                
+                                                {isUnlocked ? (
+                                                    <div className="text-[10px] text-green-600 font-medium bg-green-50 px-2 py-0.5 rounded-full mt-auto">
+                                                        {userAch.unlocked_at ? new Date(userAch.unlocked_at).toLocaleDateString('vi-VN') : 'Đã đạt'}
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-[10px] text-gray-400 mt-auto line-clamp-2 leading-tight" title={ach.description}>
+                                                        {ach.description || "Chưa mở khóa"}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             ) : (
-                                <p className="text-xs text-gray-400 italic">Chưa có thành tựu nào.</p>
+                                <p className="text-xs text-gray-400 italic">Đang tải thành tựu...</p>
                             )}
                         </div>
                         
                         <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
                             <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider flex items-center">
                                 <Activity className="h-4 w-4 mr-2 text-blue-500" />
-                                Thống kê
+                                Thống kê hoạt động
                             </h3>
                             <div className="space-y-3">
-                                <div className="flex justify-between items-center text-sm">
+                                <div className="flex justify-between items-center text-sm p-2 bg-gray-50 rounded-lg">
                                     <span className="text-gray-600">Câu hỏi đã hỏi</span>
-                                    <span className="font-bold text-gray-900">{fullProfile?.stats?.total_questions || 0}</span>
+                                    <span className="font-bold text-gray-900">{stats?.personal?.total_questions || 0}</span>
                                 </div>
-                                <div className="flex justify-between items-center text-sm">
+                                <div className="flex justify-between items-center text-sm p-2 bg-gray-50 rounded-lg">
+                                    <span className="text-gray-600">Bạn bè</span>
+                                    <span className="font-bold text-gray-900">{stats?.personal?.total_friends || 0}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm p-2 bg-gray-50 rounded-lg">
+                                    <span className="text-gray-600">Thành tựu</span>
+                                    <span className="font-bold text-gray-900">{stats?.personal?.total_achievements || 0}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm p-2 bg-gray-50 rounded-lg">
                                     <span className="text-gray-600">Tham gia từ</span>
                                     <span className="font-bold text-gray-900">
                                         {fullProfile?.created_at ? new Date(fullProfile.created_at).toLocaleDateString('vi-VN') : 'N/A'}
@@ -341,8 +387,4 @@ export default function Profile() {
       </div>
     </div>
   );
-}
-
-function clsx(...classes: any[]) {
-    return classes.filter(Boolean).join(' ');
 }

@@ -4,6 +4,7 @@ import { isUserOnline } from '@/hooks/useOnlineStatus';
 import { Search, UserPlus, MessageCircle, Ban } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/store/authStore';
 
 interface UserProfile {
     id: string;
@@ -15,6 +16,7 @@ interface UserProfile {
 }
 
 export default function Community() {
+    const { user: currentUser } = useAuthStore();
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -122,7 +124,7 @@ export default function Community() {
         navigate(`/social?chat=${userId}`);
     };
 
-    const onlineCount = users.filter(u => isUserOnline(u.last_seen)).length;
+    const onlineCount = users.filter(u => u.id !== currentUser?.id && isUserOnline(u.last_seen)).length;
 
     return (
         <div className="p-6 max-w-6xl mx-auto">
@@ -153,7 +155,7 @@ export default function Community() {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {users.map(user => {
+                    {users.filter(u => u.id !== currentUser?.id).map(user => {
                         const isOnline = isUserOnline(user.last_seen);
                         return (
                             <div key={user.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col hover:shadow-md transition-shadow relative overflow-hidden">

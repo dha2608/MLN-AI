@@ -2,7 +2,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useState, useRef, useEffect } from 'react';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
-import { Camera, Edit2, Save, X, Shield, Lock, Activity } from 'lucide-react';
+import { Camera, Edit2, Save, X, Shield, Lock, Activity, Trophy, MessageSquare } from 'lucide-react';
 import { isUserOnline } from '@/hooks/useOnlineStatus';
 
 export default function Profile() {
@@ -246,6 +246,47 @@ export default function Profile() {
                                 )}
                             </div>
                         )}
+                    </div>
+
+                    {/* Achievements & Stats */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                            <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider flex items-center">
+                                <Trophy className="h-4 w-4 mr-2 text-yellow-500" />
+                                Thành tựu
+                            </h3>
+                            {fullProfile?.achievements && fullProfile.achievements.length > 0 ? (
+                                <div className="space-y-2">
+                                    {fullProfile.achievements.map((ach: any, idx: number) => (
+                                        <div key={idx} className="flex items-center text-sm">
+                                            <span className="text-lg mr-2">{ach.icon || '🏅'}</span>
+                                            <span className="text-gray-700">{ach.name}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-xs text-gray-400 italic">Chưa có thành tựu nào.</p>
+                            )}
+                        </div>
+                        
+                        <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                            <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider flex items-center">
+                                <Activity className="h-4 w-4 mr-2 text-blue-500" />
+                                Thống kê
+                            </h3>
+                            <div className="space-y-3">
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-gray-600">Câu hỏi đã hỏi</span>
+                                    <span className="font-bold text-gray-900">{fullProfile?.stats?.total_questions || 0}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-gray-600">Tham gia từ</span>
+                                    <span className="font-bold text-gray-900">
+                                        {fullProfile?.created_at ? new Date(fullProfile.created_at).toLocaleDateString('vi-VN') : 'N/A'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

@@ -35,7 +35,12 @@ async def get_profile(user=Depends(get_current_user)):
             # Defaults
             "bio": "",
             "interests": [],
-            "allow_stranger_messages": True
+            "allow_stranger_messages": True,
+            "achievements": [],
+            "stats": {
+                "total_questions": 0,
+                "streak": 0
+            }
         }
         
         if res.data:
@@ -47,7 +52,26 @@ async def get_profile(user=Depends(get_current_user)):
                 "interests": db_user.get("interests") or [],
                 "allow_stranger_messages": db_user.get("allow_stranger_messages", True)
             })
-            
+
+        # Fetch achievements
+        try:
+            ach_res = supabase.table("user_achievements").select("achievements(name, icon_url)").eq("user_id", user.id).execute()
+            if ach_res.data:
+                user_data["achievements"] = [
+                    {"name": a["achievements"]["name"], "icon": a["achievements"]["icon_url"]} 
+                    for a in ach_res.data if a.get("achievements")
+                ]
+        except Exception as e:
+            log_error("Fetch achievements error", e)
+
+        # Fetch basic stats (optional, usually stats endpoint handles this but profile needs a summary)
+        try:
+            stats_res = supabase.table("statistics").select("total_questions").eq("user_id", user.id).execute()
+            if stats_res.data:
+                user_data["stats"]["total_questions"] = stats_res.data[0].get("total_questions", 0)
+        except Exception as e:
+            pass
+
         return user_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

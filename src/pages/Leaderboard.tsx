@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
-import { Award, Medal, User } from 'lucide-react';
+import { Award, Medal, User, UserPlus, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { clsx } from 'clsx';
+import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { useAuthStore } from '@/store/authStore';
 
 interface LeaderboardItem {
     user_id: string;
@@ -12,8 +15,10 @@ interface LeaderboardItem {
 }
 
 export default function Leaderboard() {
+    const { user: currentUser } = useAuthStore();
     const [leaderboard, setLeaderboard] = useState<LeaderboardItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchLeaderboard = async () => {
@@ -28,6 +33,19 @@ export default function Leaderboard() {
         };
         fetchLeaderboard();
     }, []);
+
+    const handleAddFriend = async (userId: string) => {
+        try {
+            await api.post('/social/friends/request', { target_user_id: userId });
+            toast.success("Đã gửi lời mời kết bạn");
+        } catch (error: any) {
+            toast.error(error.response?.data?.detail || "Gửi thất bại");
+        }
+    };
+
+    const handleMessage = (userId: string) => {
+        navigate(`/social?chat=${userId}`);
+    };
 
     const getRankIcon = (index: number) => {
         switch (index) {
@@ -120,9 +138,30 @@ export default function Leaderboard() {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right">
-                                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-soviet-red-50 text-soviet-red-700 border border-soviet-red-100">
-                                                    {item.score}
-                                                </span>
+                                                <div className="flex items-center justify-end space-x-3">
+                                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-soviet-red-50 text-soviet-red-700 border border-soviet-red-100 mr-2">
+                                                        {item.score} điểm
+                                                    </span>
+                                                    
+                                                    {currentUser?.id !== item.user_id && (
+                                                        <>
+                                                            <button 
+                                                                onClick={(e) => { e.stopPropagation(); handleAddFriend(item.user_id); }}
+                                                                className="p-2 text-gray-400 hover:text-soviet-red-600 hover:bg-red-50 rounded-full transition-colors"
+                                                                title="Kết bạn"
+                                                            >
+                                                                <UserPlus className="h-5 w-5" />
+                                                            </button>
+                                                            <button 
+                                                                onClick={(e) => { e.stopPropagation(); handleMessage(item.user_id); }}
+                                                                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                                                                title="Nhắn tin"
+                                                            >
+                                                                <MessageCircle className="h-5 w-5" />
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
                                             </td>
                                         </motion.tr>
                                     ))

@@ -349,6 +349,8 @@ export default function Social() {
                             <div className="flex space-x-2">
                                 <input 
                                     type="text" 
+                                    id="social-search"
+                                    name="social-search"
                                     placeholder="Nhập tên hoặc email..." 
                                     className="flex-1 border border-gray-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-soviet-red-500 focus:outline-none"
                                     value={searchQuery}
@@ -507,6 +509,8 @@ export default function Social() {
                                         <div className="flex space-x-2">
                                             <input 
                                                 type="text" 
+                                                id="chat-message-input"
+                                                name="message"
                                                 className="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:ring-2 focus:ring-soviet-red-500 focus:outline-none"
                                                 placeholder="Nhập tin nhắn..."
                                                 value={newMessage}

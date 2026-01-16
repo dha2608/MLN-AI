@@ -325,12 +325,19 @@ async def get_leaderboard():
         # Join with users table to get names
         response = supabase.table("statistics").select("*").order("quiz_score", desc=True).limit(50).execute()
         
+        if not response.data:
+            return []
+
+        user_ids = [stat['user_id'] for stat in response.data]
+        
+        # Optimize: Fetch all users in one query (Batch Fetching)
+        user_res = supabase.table("users").select("id, name, avatar_url").in_("id", user_ids).execute()
+        users_map = {u['id']: u for u in user_res.data} if user_res.data else {}
+
         leaderboard = []
         for stat in response.data:
             user_id = stat['user_id']
-            # Fetch user name from public.users table
-            user_res = supabase.table("users").select("name, avatar_url").eq("id", user_id).execute()
-            user_data = user_res.data[0] if user_res.data else {"name": "Unknown", "avatar_url": None}
+            user_data = users_map.get(user_id, {"name": "Người dùng ẩn danh", "avatar_url": None})
             
             leaderboard.append({
                 "user_id": user_id,

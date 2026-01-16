@@ -287,17 +287,21 @@ export default function Profile() {
                             {isEditing ? (
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Tên hiển thị</label>
+                                        <label htmlFor="profile-name" className="block text-sm font-medium text-gray-700 mb-1">Tên hiển thị</label>
                                         <input 
                                             type="text" 
+                                            id="profile-name"
+                                            name="name"
                                             value={name}
                                             onChange={(e) => setName(e.target.value)}
                                             className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-soviet-red-500 focus:outline-none"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Giới thiệu bản thân (Bio)</label>
+                                        <label htmlFor="profile-bio" className="block text-sm font-medium text-gray-700 mb-1">Giới thiệu bản thân (Bio)</label>
                                         <textarea 
+                                            id="profile-bio"
+                                            name="bio"
                                             value={bio}
                                             onChange={(e) => setBio(e.target.value)}
                                             rows={3}
@@ -475,6 +479,8 @@ export default function Profile() {
                                             <label className="relative inline-flex items-center cursor-pointer">
                                                 <input 
                                                     type="checkbox" 
+                                                    id="allow-strangers"
+                                                    name="allow-strangers"
                                                     className="sr-only peer"
                                                     checked={allowStrangers}
                                                     onChange={(e) => setAllowStrangers(e.target.checked)}

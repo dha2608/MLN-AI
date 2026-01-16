@@ -163,7 +163,7 @@ Chân lý là những tri thức phù hợp với hiện thực khách quan và 
                 id: 'c5', 
                 title: 'Hình thái Kinh tế - Xã hội', 
                 desc: 'Học thuyết về hình thái kinh tế - xã hội.', 
-                image: 'https://images.unsplash.com/photo-1444653614773-995cb7546652?q=80&w=1000&auto=format&fit=crop', // Cityscape/Society
+                image: 'https://images.unsplash.com/photo-1444653614773-995cb7546652?q=80&w=2670&auto=format&fit=crop', // Cityscape/Society
                 content: `
 ### 1. Khái niệm
 Hình thái kinh tế - xã hội là một phạm trù của chủ nghĩa duy vật lịch sử dùng để chỉ xã hội ở từng giai đoạn lịch sử nhất định, với một kiểu quan hệ sản xuất đặc trưng cho xã hội đó phù hợp với một trình độ nhất định của lực lượng sản xuất và với một kiến trúc thượng tầng tương ứng được xây dựng trên những quan hệ sản xuất ấy.

@@ -160,6 +160,14 @@ export default function Social() {
         try {
             const res = await api.get('/social/notifications');
             if (Array.isArray(res.data)) {
+                // Show only unread notifications as per "best UX" for dismissing
+                // But wait, if we only show unread, then "history" is lost.
+                // The user said: "sau khi xem qua thông báo rồi thì thông báo có thể biến mất"
+                // This implies an "Inbox" behavior.
+                // So we can show all, but provide easy dismiss.
+                // Or we can filter locally.
+                // Let's stick to showing all from backend (which is limited to 20 recent)
+                // but visually distinguish clearly.
                 setNotifications(res.data);
             } else {
                 setNotifications([]);
@@ -168,6 +176,22 @@ export default function Social() {
             console.error("Failed to fetch notifications", error);
             setNotifications([]);
         }
+    };
+
+    const handleMarkAsRead = async (id: string) => {
+        // Optimistic update
+        setNotifications(prev => prev.filter(n => n.id !== id));
+        
+        try {
+            await api.post(`/social/notifications/${id}/read`);
+        } catch (error) {
+            console.error("Mark read failed", error);
+            // Revert if critical? No, just ignore.
+        }
+    };
+
+    const handleMarkAllRead = async () => {
+        setNotifications([]);
     };
 
     const fetchMessages = async (friendId: string) => {
@@ -538,25 +562,48 @@ export default function Social() {
 
                 {activeTab === 'notifications' && (
                     <div className="flex-1 overflow-y-auto p-6">
-                        <h3 className="text-lg font-bold text-gray-900 mb-6">Thông báo</h3>
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-lg font-bold text-gray-900">Thông báo</h3>
+                            {notifications.length > 0 && (
+                                <button 
+                                    onClick={handleMarkAllRead}
+                                    className="text-sm text-soviet-red-600 hover:text-soviet-red-800 font-medium"
+                                >
+                                    Đánh dấu tất cả đã đọc
+                                </button>
+                            )}
+                        </div>
                         <div className="space-y-4">
-                            {notifications.map(notif => (
-                                <div key={notif.id} className={clsx("p-4 rounded-xl border flex items-start", notif.is_read ? "bg-white border-gray-100" : "bg-blue-50 border-blue-100")}>
-                                    <div className="bg-white p-2 rounded-full shadow-sm mr-4 text-soviet-red-600">
-                                        <Bell className="h-5 w-5" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h4 className="font-bold text-gray-900 text-sm">{notif.title}</h4>
-                                        <p className="text-gray-600 text-sm mt-1">{notif.content}</p>
-                                        <div className="text-xs text-gray-400 mt-2">{new Date(notif.created_at).toLocaleString('vi-VN')}</div>
-                                    </div>
-                                    {!notif.is_read && (
-                                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                                    )}
+                            {notifications.length === 0 ? (
+                                <div className="text-center py-10 text-gray-400">
+                                    <Bell className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                                    Không có thông báo mới
                                 </div>
-                            ))}
-                            {notifications.length === 0 && (
-                                <div className="text-center py-10 text-gray-400">Không có thông báo mới</div>
+                            ) : (
+                                notifications.map(notif => (
+                                    <div key={notif.id} className={clsx("p-4 rounded-xl border flex items-start transition-all", notif.is_read ? "bg-white border-gray-100 opacity-75" : "bg-blue-50 border-blue-100 shadow-sm")}>
+                                        <div className="bg-white p-2 rounded-full shadow-sm mr-4 text-soviet-red-600 flex-shrink-0">
+                                            <Bell className="h-5 w-5" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="font-bold text-gray-900 text-sm truncate">{notif.title}</h4>
+                                            <p className="text-gray-600 text-sm mt-1 line-clamp-2">{notif.content}</p>
+                                            <div className="text-xs text-gray-400 mt-2">{new Date(notif.created_at).toLocaleString('vi-VN')}</div>
+                                        </div>
+                                        <div className="ml-2 flex flex-col items-end space-y-2">
+                                            {!notif.is_read && (
+                                                <div className="w-2 h-2 bg-blue-500 rounded-full mb-2"></div>
+                                            )}
+                                            <button 
+                                                onClick={() => handleMarkAsRead(notif.id)}
+                                                className="text-gray-400 hover:text-gray-600 p-1"
+                                                title="Đánh dấu đã đọc"
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))
                             )}
                         </div>
                     </div>

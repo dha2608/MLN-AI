@@ -6,6 +6,8 @@ import toast from 'react-hot-toast';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { clsx } from 'clsx';
+import { formatDistanceToNow } from 'date-fns';
+import { vi } from 'date-fns/locale';
 
 interface UserProfile {
     id: string;
@@ -206,7 +208,11 @@ export default function Community() {
                                                 {user.name}
                                             </Link>
                                             <div className="text-xs text-gray-500">
-                                                {isUserOnline(user.last_seen) ? "Đang hoạt động" : "Ngoại tuyến"}
+                                                {isUserOnline(user.last_seen) ? (
+                                                    <span className="text-green-600 font-medium">Đang hoạt động</span>
+                                                ) : (
+                                                    user.last_seen ? formatDistanceToNow(new Date(user.last_seen), { addSuffix: true, locale: vi }) : "Ngoại tuyến"
+                                                )}
                                             </div>
                                         </div>
                                     </div>

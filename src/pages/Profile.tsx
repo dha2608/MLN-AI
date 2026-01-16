@@ -1,11 +1,13 @@
 import { useAuthStore } from '@/store/authStore';
 import { useState, useRef, useEffect } from 'react';
 import api from '@/lib/api';
+import { isUserOnline } from '@/hooks/useOnlineStatus';
 import toast from 'react-hot-toast';
 import { Camera, Edit2, Save, X, Shield, Activity, Trophy, MessageSquare, UserPlus, Check, ArrowLeft } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useParams, useNavigate } from 'react-router-dom';
-import { isUserOnline } from '@/hooks/useOnlineStatus';
+import { formatDistanceToNow } from 'date-fns';
+import { vi } from 'date-fns/locale';
 
 export default function Profile() {
   const { user, setSession } = useAuthStore();
@@ -423,6 +425,15 @@ export default function Profile() {
                                 </h3>
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center text-sm p-2 bg-gray-50 rounded-lg">
+                                        <span className="text-gray-600">Thứ hạng</span>
+                                        <button 
+                                            onClick={() => navigate(`/leaderboard?highlight=${profileData.id}`)}
+                                            className="font-bold text-soviet-red-700 hover:underline flex items-center"
+                                        >
+                                            #{profileData.stats?.rank || '---'}
+                                        </button>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm p-2 bg-gray-50 rounded-lg">
                                         <span className="text-gray-600">Câu hỏi đã hỏi</span>
                                         <span className="font-bold text-gray-900">{profileData.stats?.total_questions || 0}</span>
                                     </div>
@@ -457,7 +468,11 @@ export default function Profile() {
                                 </span>
                             </div>
                             <p className="text-xs text-gray-500 mt-1">
-                                Lần cuối: {profileData.last_seen ? new Date(profileData.last_seen).toLocaleString('vi-VN') : 'Không rõ'}
+                                {profileData.last_seen ? (
+                                    <>
+                                        Hoạt động {formatDistanceToNow(new Date(profileData.last_seen), { addSuffix: true, locale: vi })}
+                                    </>
+                                ) : 'Chưa hoạt động'}
                             </p>
                         </div>
 

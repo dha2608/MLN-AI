@@ -3,7 +3,7 @@ import api from '@/lib/api';
 import { Award, Medal, User, UserPlus, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { clsx } from 'clsx';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store/authStore';
 
@@ -19,6 +19,8 @@ export default function Leaderboard() {
     const [leaderboard, setLeaderboard] = useState<LeaderboardItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const highlightId = searchParams.get('highlight');
 
     useEffect(() => {
         const fetchLeaderboard = async () => {
@@ -106,15 +108,17 @@ export default function Leaderboard() {
                                     leaderboard.map((item, index) => (
                                         <motion.tr 
                                             key={item.user_id}
+                                            id={`user-row-${item.user_id}`}
                                             initial={{ opacity: 0, x: -20 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             transition={{ delay: index * 0.1 }}
                                             className={clsx(
-                                                "hover:bg-gray-50 transition-colors",
+                                                "hover:bg-gray-50 transition-colors duration-500",
                                                 index < 3 ? "bg-gradient-to-r from-transparent via-transparent" : "",
                                                 index === 0 ? "to-yellow-50/30" : "",
                                                 index === 1 ? "to-gray-50/30" : "",
-                                                index === 2 ? "to-amber-50/30" : ""
+                                                index === 2 ? "to-amber-50/30" : "",
+                                                highlightId === item.user_id ? "bg-yellow-50 ring-2 ring-inset ring-yellow-400" : ""
                                             )}
                                         >
                                             <td className="px-6 py-4 whitespace-nowrap">

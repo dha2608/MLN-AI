@@ -171,91 +171,33 @@ async def get_public_profile(target_user_id: str, user=Depends(get_current_user)
 @router.get("/profile/{target_user_id}")
 async def get_public_profile(target_user_id: str, user=Depends(get_current_user)):
     try:
-        # Check if requesting self (redirect to standard profile logic or handle here)
+        # Check if requesting self
         if target_user_id == user.id or target_user_id == "me":
              return await get_profile(user)
 
-        # 1. Fetch user basic info
-        res = supabase.table("users").select("id, name, avatar_url, bio, interests, created_at, last_seen, allow_stranger_messages").eq("id", target_user_id).execute()
+        # OPTIMIZED: Fetch User + Stats + Achievements in ONE query
+        # We use explicit columns to reduce payload size
+        query = (
+            "id, name, avatar_url, bio, interests, created_at, last_seen, allow_stranger_messages,"
+            "statistics(total_questions, streak_count, quiz_score),"
+            "user_achievements(created_at, achievements(id, name, icon_url, description))"
+        )
+        
+        res = supabase.table("users").select(query).eq("id", target_user_id).execute()
         
         if not res.data:
             raise HTTPException(status_code=404, detail="User not found")
             
         target_user = res.data[0]
         
-        # 2. Fetch stats
-        stats_data = {
-            "total_questions": 0,
-            "streak": 0,
-            "total_friends": 0,
-            "total_achievements": 0
-        }
+        # Parse nested data
+        stats_db = target_user.get("statistics", [])
+        stats_db = stats_db[0] if stats_db else {}
         
-        try:
-            # Stats table
-            s_res = supabase.table("statistics").select("total_questions, streak_count").eq("user_id", target_user_id).execute()
-            if s_res.data:
-                stats_data["total_questions"] = s_res.data[0].get("total_questions", 0)
-                stats_data["streak"] = s_res.data[0].get("streak_count", 0)
-            
-            # Recalculate total questions properly if needed (like we did in stats.py)
-            # For public profile, maybe just use the cached value in statistics table or do a quick count
-            # Let's do a quick count of messages to be accurate
-            # Get conversation IDs
-            conv_res = supabase.table("conversations").select("id").eq("user_id", target_user_id).execute()
-            if conv_res.data:
-                c_ids = [c['id'] for c in conv_res.data]
-                if c_ids:
-                    m_res = supabase.table("messages").select("id", count="exact").in_("conversation_id", c_ids).eq("role", "user").execute()
-                    stats_data["total_questions"] = m_res.count if m_res.count is not None else len(m_res.data)
-
-            # Friends count
-            f_res = supabase.table("friendships").select("id", count="exact").eq("status", "accepted").or_(f"user_id.eq.{target_user_id},friend_id.eq.{target_user_id}").execute()
-            stats_data["total_friends"] = f_res.count if f_res.count is not None else 0
-            
-            # Achievements count
-            a_res = supabase.table("user_achievements").select("id", count="exact").eq("user_id", target_user_id).execute()
-            stats_data["total_achievements"] = a_res.count if a_res.count is not None else 0
-
-        except Exception as e:
-            log_error(f"Error fetching stats for {target_user_id}", e)
-
-        # 3. Fetch Achievements details
-        achievements = []
-        try:
-            ach_res = supabase.table("user_achievements").select("created_at, achievements(id, name, icon_url, description)").eq("user_id", target_user_id).execute()
-            if ach_res.data:
-                achievements = [
-                    {
-                        "id": a["achievements"]["id"],
-                        "name": a["achievements"]["name"], 
-                        "icon": a["achievements"]["icon_url"],
-                        "description": a["achievements"].get("description", ""),
-                        "unlocked_at": a["created_at"]
-                    } 
-                    for a in ach_res.data if a.get("achievements")
-                ]
-        except Exception as e:
-            pass
-
-        # 4. Check friendship status with current user
-        friendship_status = "none" # none, pending, accepted
-        try:
-             fr_res = supabase.table("friendships").select("status, user_id, friend_id").or_(
-                 f"and(user_id.eq.{user.id},friend_id.eq.{target_user_id}),and(user_id.eq.{target_user_id},friend_id.eq.{user.id})"
-             ).execute()
-             if fr_res.data:
-                 friendship_status = fr_res.data[0]["status"]
-                 # If pending, check who sent it
-                 if friendship_status == "pending":
-                     if fr_res.data[0]["user_id"] == user.id:
-                         friendship_status = "sent" # I sent request
-                     else:
-                         friendship_status = "received" # They sent request
-        except Exception as e:
-            pass
-
-        return {
+        achievements_db = target_user.get("user_achievements", [])
+        
+        # 1. Basic Info
+        user_data = {
             "id": target_user["id"],
             "name": target_user["name"],
             "avatar_url": target_user["avatar_url"],
@@ -264,10 +206,59 @@ async def get_public_profile(target_user_id: str, user=Depends(get_current_user)
             "created_at": target_user["created_at"],
             "last_seen": target_user.get("last_seen"),
             "allow_stranger_messages": target_user.get("allow_stranger_messages", True),
-            "stats": stats_data,
-            "achievements": achievements,
-            "friendship_status": friendship_status
+            "stats": {
+                "total_questions": stats_db.get("total_questions", 0),
+                "streak": stats_db.get("streak_count", 0),
+                "total_friends": 0, # Will fetch below
+                "total_achievements": len(achievements_db),
+                "rank": 0 # Will fetch below
+            },
+            "achievements": [],
+            "friendship_status": "none"
         }
+
+        # 2. Process Achievements
+        if achievements_db:
+             user_data["achievements"] = [
+                {
+                    "id": a["achievements"]["id"],
+                    "name": a["achievements"]["name"], 
+                    "icon": a["achievements"]["icon_url"],
+                    "description": a["achievements"].get("description", ""),
+                    "unlocked_at": a["created_at"]
+                } 
+                for a in achievements_db if a.get("achievements")
+            ]
+
+        # 3. Parallel-ish Fetch for Rank, Friends Count, and Friendship Status
+        # Since we can't do true async parallel with sync client, we run them sequentially but efficiently.
+        
+        target_score = stats_db.get("quiz_score", 0)
+        
+        # Rank: Count users with higher score
+        rank_res = supabase.table("statistics").select("user_id", count="exact").gt("quiz_score", target_score).execute()
+        user_data["stats"]["rank"] = (rank_res.count or 0) + 1
+        
+        # Total Friends
+        f_res = supabase.table("friendships").select("id", count="exact").eq("status", "accepted").or_(f"user_id.eq.{target_user_id},friend_id.eq.{target_user_id}").execute()
+        user_data["stats"]["total_friends"] = f_res.count or 0
+        
+        # Friendship Status with Me
+        fr_res = supabase.table("friendships").select("status, user_id").or_(
+             f"and(user_id.eq.{user.id},friend_id.eq.{target_user_id}),and(user_id.eq.{target_user_id},friend_id.eq.{user.id})"
+        ).execute()
+        
+        if fr_res.data:
+             status = fr_res.data[0]["status"]
+             if status == "pending":
+                 if fr_res.data[0]["user_id"] == user.id:
+                     status = "sent"
+                 else:
+                     status = "received"
+             user_data["friendship_status"] = status
+
+        return user_data
+
     except HTTPException as he:
         raise he
     except Exception as e:
@@ -456,6 +447,12 @@ async def search_users(query: str, user=Depends(get_current_user)):
     try:
         if not query:
             return []
+        # Include last_seen, bio, interests for full card display
+        res = supabase.table("users").select("id, name, email, avatar_url, last_seen, bio, interests").ilike("name", f"%{query}%").neq("id", user.id).limit(20).execute()
+        return res.data
+    except Exception as e:
+        log_error("Search error", e)
+        return []
         # Include last_seen, bio, interests for full card display
         res = supabase.table("users").select("id, name, email, avatar_url, last_seen, bio, interests").ilike("name", f"%{query}%").neq("id", user.id).limit(20).execute()
         return res.data

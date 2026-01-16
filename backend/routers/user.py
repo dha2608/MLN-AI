@@ -112,10 +112,26 @@ async def get_community_fallback():
             return []
 
 @router.get("/community")
-async def get_community_members(user=Depends(get_current_user)):
-    # Soft Auth: user might be None
-    user_id = user.id if user else "guest"
+async def get_community_members(user_token: str = Header(None, alias="Authorization")):
+    """
+    Nuclear Option: Manual Auth parsing to bypass FastAPI Dependency issues.
+    This endpoint MUST NOT FAIL with 500.
+    """
+    user_id = "guest"
     
+    # Try manual auth
+    try:
+        if user_token and "Bearer " in user_token:
+            token = user_token.replace("Bearer ", "")
+            if token and token != "null":
+                user_res = supabase.auth.get_user(token)
+                if user_res and user_res.user:
+                    user_id = user_res.user.id
+    except Exception as e:
+        # Ignore auth errors completely
+        print(f"Community Manual Auth Error: {e}")
+        pass
+        
     try:
         log_info(f"Community fetch requested by user: {user_id}")
     except:

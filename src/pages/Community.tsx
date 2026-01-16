@@ -88,12 +88,13 @@ export default function Community() {
     const fetchCommunity = async () => {
         setLoading(true);
         try {
-            const res = await api.get('/user/community');
+            // Use V2 endpoint directly to bypass 500 issues
+            const res = await api.get('/user/community_v2');
             setUsers(res.data);
         } catch (error) {
-            console.error("Failed to fetch community, trying fallback", error);
-            // Auto fallback to public endpoint
+            console.error("Failed to fetch community V2", error);
             try {
+                // Fallback to old public endpoint just in case
                 const fallbackRes = await api.get('/user/community/public_fallback');
                 setUsers(fallbackRes.data);
             } catch (fbError) {

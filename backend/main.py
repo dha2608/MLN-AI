@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.routers import auth, chat, stats, user, quiz, social
+from backend.routers import auth, chat, stats, user, quiz, social, health
 import os
 
 print("Starting FastAPI app...") # Debug log for Vercel
@@ -31,6 +31,7 @@ app.include_router(stats.router, prefix="/api/statistics", tags=["statistics"])
 app.include_router(user.router, prefix="/api/user", tags=["user"])
 app.include_router(quiz.router, prefix="/api/quiz", tags=["quiz"])
 app.include_router(social.router, prefix="/api/social", tags=["social"])
+app.include_router(health.router, prefix="/api", tags=["health"])
 
 @app.get("/")
 def read_root():

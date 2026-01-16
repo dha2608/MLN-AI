@@ -31,14 +31,23 @@ try:
     # We use the Service Role Key to bypass RLS for backend operations.
     # The backend acts as a trusted environment.
     
+    # Force timeout settings to prevent hanging
+    from supabase.client import ClientOptions
+    
+    options = ClientOptions(
+        postgrest_client_timeout=10,
+        storage_client_timeout=10
+    )
+    
     # Simple initialization without ClientOptions to minimize failure surface
-    supabase: Client = create_client(url.strip(), key.strip())
+    supabase: Client = create_client(url.strip(), key.strip(), options=options)
         
     print("Successfully initialized Supabase client.", file=sys.stderr)
 
 except Exception as e:
     init_error = str(e)
     print(f"FATAL: Failed to initialize Supabase client: {e}", file=sys.stderr)
+    # ... rest of error handling
     import traceback
     traceback.print_exc(file=sys.stderr)
     

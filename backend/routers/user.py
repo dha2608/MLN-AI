@@ -97,19 +97,25 @@ async def send_heartbeat(user=Depends(get_current_user)):
         # Log silently, don't crash frontend loop
         return {"status": "error"}
 
-@router.get("/community/public_fallback")
-async def get_community_fallback():
+@router.get("/community_v2")
+async def get_community_v2():
+    """
+    Clean V2 Endpoint for Community.
+    No Auth dependency. Pure DB query.
+    Used to bypass persistent 500 errors on old endpoint.
+    """
     try:
-        # Try to get data with last_seen for fallback
+        # Simple query first
         res = supabase.table("users").select("id, name, avatar_url, last_seen, bio, interests").order("last_seen", desc=True).limit(50).execute()
         return res.data
-    except:
-        # Absolute minimal fallback
+    except Exception as e:
+        print(f"Community V2 Error: {e}")
+        # Fallback
         try:
-            res = supabase.table("users").select("id, name, avatar_url").limit(50).execute()
-            return res.data
+             res = supabase.table("users").select("id, name, avatar_url").limit(50).execute()
+             return res.data
         except:
-            return []
+             return []
 
 @router.get("/community")
 async def get_community_members(user_token: str = Header(None, alias="Authorization")):

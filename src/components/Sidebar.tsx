@@ -220,19 +220,21 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
       {/* User Profile Footer */}
       <div className="p-4 border-t border-gray-100 bg-gray-50">
         <div className="flex items-center">
-          <div className="h-10 w-10 rounded-full bg-soviet-red-100 border-2 border-white shadow-sm overflow-hidden flex-shrink-0">
-             {user?.avatar_url ? (
-                <img src={user.avatar_url} alt="Avatar" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
-             ) : (
-                <div className="h-full w-full flex items-center justify-center text-soviet-red-700 font-bold">
-                    {user?.name?.charAt(0).toUpperCase()}
-                </div>
-             )}
-          </div>
-          <div className="ml-3 flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate font-serif">{user?.name || user?.email}</p>
-            <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-          </div>
+            <Link to="/profile" className="flex items-center flex-1 min-w-0 group cursor-pointer" onClick={onClose}>
+              <div className="h-10 w-10 rounded-full bg-soviet-red-100 border-2 border-white shadow-sm overflow-hidden flex-shrink-0 group-hover:border-soviet-red-300 transition-colors">
+                 {user?.avatar_url ? (
+                    <img src={user.avatar_url} alt="Avatar" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+                 ) : (
+                    <div className="h-full w-full flex items-center justify-center text-soviet-red-700 font-bold">
+                        {user?.name?.charAt(0).toUpperCase()}
+                    </div>
+                 )}
+              </div>
+              <div className="ml-3 flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate font-serif group-hover:text-soviet-red-700 transition-colors">{user?.name || user?.email}</p>
+                <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+              </div>
+            </Link>
           <button
             onClick={logout}
             className="flex items-center space-x-2 px-3 py-2 text-gray-500 hover:text-soviet-red-600 transition-colors rounded-lg hover:bg-white hover:shadow-sm ml-auto"

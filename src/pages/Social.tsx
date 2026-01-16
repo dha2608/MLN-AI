@@ -225,14 +225,42 @@ export default function Social() {
 
     const handleDeleteFriend = async (e: React.MouseEvent, friendId: string, friendName: string) => {
         e.stopPropagation(); // Prevent opening chat
-        if (!window.confirm(`Bạn có chắc muốn hủy kết bạn với ${friendName}?`)) return;
         
+        // Custom confirmation toast
+        toast((t) => (
+            <div className="flex flex-col gap-2">
+                <span className="font-medium text-gray-900">
+                    Bạn có chắc muốn hủy kết bạn với <span className="font-bold text-soviet-red-700">{friendName}</span>?
+                </span>
+                <div className="flex justify-end gap-2 mt-2">
+                    <button 
+                        onClick={() => toast.dismiss(t.id)}
+                        className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                        Hủy
+                    </button>
+                    <button 
+                        onClick={() => {
+                            toast.dismiss(t.id);
+                            confirmDelete(friendId);
+                        }}
+                        className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition-colors"
+                    >
+                        Xóa bạn bè
+                    </button>
+                </div>
+            </div>
+        ), { duration: 5000, position: 'top-center' });
+    };
+
+    const confirmDelete = async (friendId: string) => {
         try {
             await api.delete(`/social/friends/${friendId}`);
             setFriends(prev => prev.filter(f => f.id !== friendId));
             if (selectedFriend?.id === friendId) {
                 setSelectedFriend(null);
             }
+            toast.success("Đã hủy kết bạn");
         } catch (error) {
             console.error("Failed to delete friend", error);
             toast.error("Có lỗi xảy ra khi hủy kết bạn");

@@ -101,12 +101,19 @@ async def update_profile(data: UserUpdate, user=Depends(get_current_user)):
         # Also ensure name is present if not provided, fallback to metadata or email
         if not update_data.get("name"):
             update_data["name"] = user.user_metadata.get("full_name", user.email)
+            
+        # Check if user exists first to decide insert vs update
+        exists = supabase.table("users").select("id").eq("id", user.id).execute()
         
-        # Explicitly return the inserted/updated row
-        res = supabase.table("users").upsert(update_data).execute()
+        if not exists.data:
+            # If not exists, insert
+            res = supabase.table("users").insert(update_data).execute()
+        else:
+            # If exists, update
+            res = supabase.table("users").update(update_data).eq("id", user.id).execute()
         
         if not res.data:
-             # Fallback: if upsert fails to return data (sometimes happens with policies), fetch it
+             # Fallback fetch
              res = supabase.table("users").select("*").eq("id", user.id).execute()
              
         return res.data[0] if res.data else update_data

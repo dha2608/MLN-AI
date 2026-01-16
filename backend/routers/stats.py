@@ -117,6 +117,7 @@ async def get_statistics(user=Depends(get_current_user)):
         achievements_count = 0
         try:
             # Count accepted friendships
+            # Correct logic: user is either user_id or friend_id
             f_res = supabase.table("friendships").select("id", count="exact").eq("status", "accepted").or_(f"user_id.eq.{user_id},friend_id.eq.{user_id}").execute()
             friends_count = f_res.count if f_res.count is not None else len(f_res.data)
             

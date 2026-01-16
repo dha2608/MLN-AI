@@ -33,6 +33,7 @@ export default function Community() {
                     table: 'users',
                 },
                 (payload) => {
+                    console.log("Realtime Update Received:", payload);
                     const updatedUser = payload.new as UserProfile;
                     setUsers((prevUsers) => 
                         prevUsers.map((user) => 
@@ -41,7 +42,9 @@ export default function Community() {
                     );
                 }
             )
-            .subscribe();
+            .subscribe((status) => {
+                console.log("Realtime Subscription Status:", status);
+            });
 
         return () => {
             supabase.removeChannel(channel);

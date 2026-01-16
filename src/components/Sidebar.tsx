@@ -153,7 +153,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
               />
               {item.label}
               {item.href === '/social' && unreadCount > 0 && (
-                 <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-pulse">
+                 <span className="ml-auto bg-soviet-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-pulse">
                      {unreadCount > 9 ? '9+' : unreadCount}
                  </span>
               )}

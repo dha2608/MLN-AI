@@ -73,9 +73,14 @@ async def get_profile(user=Depends(get_current_user)):
 
         # Fetch basic stats (optional, usually stats endpoint handles this but profile needs a summary)
         try:
-            stats_res = supabase.table("statistics").select("total_questions").eq("user_id", user.id).execute()
+            stats_res = supabase.table("statistics").select("total_questions, quiz_score").eq("user_id", user.id).execute()
             if stats_res.data:
                 user_data["stats"]["total_questions"] = stats_res.data[0].get("total_questions", 0)
+                my_score = stats_res.data[0].get("quiz_score", 0)
+                
+                # Calculate Rank
+                rank_res = supabase.table("statistics").select("user_id", count="exact").gt("quiz_score", my_score).execute()
+                user_data["stats"]["rank"] = (rank_res.count or 0) + 1
         except Exception as e:
             pass
 

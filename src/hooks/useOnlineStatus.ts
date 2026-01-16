@@ -59,16 +59,10 @@ export function useOnlineStatus() {
     return isOnline;
 }
 
-export function isUserOnline(lastSeen: string | null) {
+export const isUserOnline = (lastSeen: string | null) => {
     if (!lastSeen) return false;
     const last = new Date(lastSeen).getTime();
     const now = new Date().getTime();
-    
-    // Debug time difference
-    const diffMinutes = (now - last) / (1000 * 60);
-    // console.log(`Online Check: diff=${diffMinutes.toFixed(2)} mins, last=${lastSeen}`);
-    
-    // Consider online if seen within last 60 minutes (extremely relaxed for testing)
-    // If this works, we know it's a timezone/clock drift issue
-    return diffMinutes < 60;
-}
+    // Reduce threshold to 2 minutes for more accuracy
+    return (now - last) < 2 * 60 * 1000; 
+};

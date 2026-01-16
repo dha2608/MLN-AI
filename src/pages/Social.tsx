@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Users, UserPlus, MessageSquare, Bell, Search, Send, X, Clock, Trash2 } from 'lucide-react';
+import { isUserOnline } from '@/hooks/useOnlineStatus';
+import { formatDistanceToNow } from 'date-fns';
+import { vi } from 'date-fns/locale';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { clsx } from 'clsx';
@@ -12,6 +15,7 @@ interface User {
     name: string;
     email: string;
     avatar_url: string | null;
+    last_seen: string | null;
 }
 
 interface FriendRequest {
@@ -92,7 +96,8 @@ export default function Social() {
                     id: target.id,
                     name: target.name,
                     email: target.email || '',
-                    avatar_url: target.avatar_url
+                    avatar_url: target.avatar_url,
+                    last_seen: target.last_seen || null
                 });
             }
         }
@@ -447,8 +452,14 @@ export default function Social() {
                                         {renderAvatar(friend, "w-12 h-12")}
                                         <div className="ml-4">
                                             <div className="font-bold text-gray-900">{friend.name}</div>
-                                            <div className="text-xs text-green-600 flex items-center mt-1">
-                                                <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div> Online
+                                            <div className="text-xs text-gray-500 flex items-center mt-1">
+                                                {isUserOnline(friend.last_seen) ? (
+                                                     <><div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div> Online</>
+                                                ) : (
+                                                     <span className="text-gray-400">
+                                                        {friend.last_seen ? `Hoạt động ${formatDistanceToNow(new Date(friend.last_seen), { addSuffix: true, locale: vi })}` : 'Ngoại tuyến'}
+                                                     </span>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="ml-auto flex space-x-2">

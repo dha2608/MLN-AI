@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
+import { useNotificationStore } from '@/store/notificationStore';
 import { MessageSquare, User, BarChart2, LogOut, Plus, BookOpen, Library, BrainCircuit, Trash2, Award, Edit3, Check, X, Users as UsersIcon, Trophy, Globe } from 'lucide-react';
 import { clsx } from 'clsx';
 import { motion } from 'framer-motion';
@@ -9,6 +10,7 @@ import toast from 'react-hot-toast';
 
 export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) {
   const { user, logout } = useAuthStore();
+  const { unreadCount } = useNotificationStore();
   const location = useLocation();
   const navigate = useNavigate();
   const [recentChats, setRecentChats] = useState<any[]>([]);
@@ -137,7 +139,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
               key={item.href}
               to={item.href}
               className={clsx(
-                'flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 group',
+                'flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 group relative',
                 isActive
                   ? 'bg-soviet-red-50 text-soviet-red-800 shadow-sm'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 hover:pl-4'
@@ -150,6 +152,11 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
                 )}
               />
               {item.label}
+              {item.href === '/social' && unreadCount > 0 && (
+                 <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-pulse">
+                     {unreadCount > 9 ? '9+' : unreadCount}
+                 </span>
+              )}
             </Link>
           );
         })}

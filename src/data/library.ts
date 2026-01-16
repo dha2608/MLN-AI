@@ -482,9 +482,9 @@ Chuyên chính vô sản là việc giai cấp công nhân nắm quyền lực n
                 author: 'K. Marx & F. Engels', 
                 year: '1848',
                 desc: 'Cương lĩnh chính trị đầu tiên của phong trào công nhân và các đảng cộng sản.',
-                image: 'https://upload.wikimedia.org/wikipedia/commons/5/5a/Communist_Manifesto_original.jpg', // Use full res
+                image: 'https://images.unsplash.com/photo-1555449372-233f2662c166?q=80&w=1000&auto=format&fit=crop', // Manifesto Placeholder
                 content: `
-**"Tuyên ngôn của Đảng Cộng sản"** (Manifest der Kommunistischen Partei) là văn kiện cương lĩnh đầu tiên của chủ nghĩa xã hội khoa học, được soạn thảo bởi Karl Marx và Friedrich Engels, công bố lần đầu vào tháng 2 năm 1848.
+                **"Tuyên ngôn của Đảng Cộng sản"** (Manifest der Kommunistischen Partei) là văn kiện cương lĩnh đầu tiên của chủ nghĩa xã hội khoa học, được soạn thảo bởi Karl Marx và Friedrich Engels, công bố lần đầu vào tháng 2 năm 1848.
 
 ### Nội dung chính:
 1. **Lịch sử đấu tranh giai cấp**: "Lịch sử của tất cả các xã hội tồn tại từ trước đến nay chỉ là lịch sử đấu tranh giai cấp."
@@ -499,9 +499,9 @@ Chuyên chính vô sản là việc giai cấp công nhân nắm quyền lực n
                 author: 'K. Marx', 
                 year: '1867',
                 desc: 'Công trình vĩ đại nhất của Marx, phân tích sâu sắc về phương thức sản xuất tư bản chủ nghĩa.',
-                image: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Das_Kapital_Volume_I_1867.jpg',
+                image: 'https://images.unsplash.com/photo-1612531386530-97286d74c2ea?q=80&w=1000&auto=format&fit=crop',
                 content: `
-**"Tư bản"** (Das Kapital) là bộ sách đồ sộ về kinh tế chính trị học của Karl Marx. Tập 1 được xuất bản năm 1867.
+                **"Tư bản"** (Das Kapital) là bộ sách đồ sộ về kinh tế chính trị học của Karl Marx. Tập 1 được xuất bản năm 1867.
 
 ### Nội dung chính:
 - Phân tích hàng hóa và tiền tệ.
@@ -516,9 +516,9 @@ Chuyên chính vô sản là việc giai cấp công nhân nắm quyền lực n
                 author: 'V.I. Lenin', 
                 year: '1917',
                 desc: 'Học thuyết của chủ nghĩa Mác về nhà nước và nhiệm vụ của giai cấp vô sản trong cách mạng.',
-                image: 'https://upload.wikimedia.org/wikipedia/commons/0/07/State_and_Revolution.jpg',
+                image: 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?q=80&w=1000&auto=format&fit=crop',
                 content: `
-**"Nhà nước và Cách mạng"** được Lenin viết vào tháng 8 và 9 năm 1917, ngay trước Cách mạng Tháng Mười Nga.
+                **"Nhà nước và Cách mạng"** được Lenin viết vào tháng 8 và 9 năm 1917, ngay trước Cách mạng Tháng Mười Nga.
 
 ### Nội dung chính:
 - Khôi phục học thuyết của Marx và Engels về nhà nước (bị những người cơ hội bóp méo).
@@ -533,9 +533,9 @@ Chuyên chính vô sản là việc giai cấp công nhân nắm quyền lực n
                 author: 'K. Marx & F. Engels',
                 year: '1845',
                 desc: 'Tác phẩm đánh dấu sự ra đời của chủ nghĩa duy vật lịch sử.',
-                image: 'https://upload.wikimedia.org/wikipedia/commons/6/6f/German_Ideology.jpg',
+                image: 'https://images.unsplash.com/photo-1535905557558-afc4877a26fc?q=80&w=1000&auto=format&fit=crop',
                 content: `
-Trong tác phẩm này, Marx và Engels đã trình bày những nguyên lý cơ bản của chủ nghĩa duy vật lịch sử, phê phán triết học duy tâm của Hêghen và Phơ-bách.
+                Trong tác phẩm này, Marx và Engels đã trình bày những nguyên lý cơ bản của chủ nghĩa duy vật lịch sử, phê phán triết học duy tâm của Hêghen và Phơ-bách.
                 `
             },
             {
@@ -544,9 +544,9 @@ Trong tác phẩm này, Marx và Engels đã trình bày những nguyên lý cơ
                 author: 'V.I. Lenin',
                 year: '1902',
                 desc: 'Tác phẩm đặt nền móng cho việc xây dựng đảng kiểu mới của giai cấp công nhân.',
-                image: 'https://upload.wikimedia.org/wikipedia/commons/e/ee/Lenin_What_Is_To_Be_Done_1902_front.jpg',
+                image: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=1000&auto=format&fit=crop',
                 content: `
-Lenin trình bày những nguyên tắc tổ chức của đảng mác-xít, phê phán chủ nghĩa kinh tế và tính tự phát trong phong trào công nhân.
+                Lenin trình bày những nguyên tắc tổ chức của đảng mác-xít, phê phán chủ nghĩa kinh tế và tính tự phát trong phong trào công nhân.
                 `
             },
             {
@@ -555,9 +555,9 @@ Lenin trình bày những nguyên tắc tổ chức của đảng mác-xít, ph�
                 author: 'F. Engels',
                 year: '1878',
                 desc: 'Tác phẩm trình bày một cách hệ thống ba bộ phận cấu thành chủ nghĩa Mác.',
-                image: 'https://upload.wikimedia.org/wikipedia/commons/c/c3/Anti-D%C3%BChring.jpg',
+                image: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=1000&auto=format&fit=crop',
                 content: `
-Tác phẩm "Chống Đuy-rinh" (Anti-Dühring) là một công trình bách khoa toàn thư của chủ nghĩa Mác, trong đó Engels đã bảo vệ và phát triển các quan điểm triết học, kinh tế chính trị và chủ nghĩa xã hội khoa học.
+                Tác phẩm "Chống Đuy-rinh" (Anti-Dühring) là một công trình bách khoa toàn thư của chủ nghĩa Mác, trong đó Engels đã bảo vệ và phát triển các quan điểm triết học, kinh tế chính trị và chủ nghĩa xã hội khoa học.
                 `
             },
             {
@@ -566,9 +566,9 @@ Tác phẩm "Chống Đuy-rinh" (Anti-Dühring) là một công trình bách kho
                 author: 'F. Engels',
                 year: '1845',
                 desc: 'Bức tranh chân thực về sự khốn cùng của giai cấp vô sản dưới chế độ tư bản.',
-                image: 'https://upload.wikimedia.org/wikipedia/commons/8/8a/Lage_der_arbeitenden_Klasse_in_England.jpg',
+                image: 'https://images.unsplash.com/photo-1505545121909-2d48e22f16ee?q=80&w=1000&auto=format&fit=crop',
                 content: `
-Engels mô tả chi tiết điều kiện sống và làm việc tồi tệ của công nhân Anh, qua đó tố cáo bản chất vô nhân đạo của chủ nghĩa tư bản và dự báo về cuộc cách mạng xã hội tất yếu.
+                Engels mô tả chi tiết điều kiện sống và làm việc tồi tệ của công nhân Anh, qua đó tố cáo bản chất vô nhân đạo của chủ nghĩa tư bản và dự báo về cuộc cách mạng xã hội tất yếu.
                 `
             },
             {
@@ -577,9 +577,9 @@ Engels mô tả chi tiết điều kiện sống và làm việc tồi tệ củ
                 author: 'V.I. Lenin',
                 year: '1916',
                 desc: 'Sự phát triển của chủ nghĩa Mác về kinh tế chính trị học trong thời đại mới.',
-                image: 'https://upload.wikimedia.org/wikipedia/commons/0/03/Lenin_Imperialism.jpg',
+                image: 'https://images.unsplash.com/photo-1526304640152-d4619684e884?q=80&w=1000&auto=format&fit=crop',
                 content: `
-Lenin chỉ ra 5 đặc điểm cơ bản của chủ nghĩa đế quốc:
+                Lenin chỉ ra 5 đặc điểm cơ bản của chủ nghĩa đế quốc:
 1. Tập trung sản xuất và tư bản dẫn đến độc quyền.
 2. Sự hợp nhất giữa tư bản ngân hàng và tư bản công nghiệp (tư bản tài chính).
 3. Xuất khẩu tư bản trở nên quan trọng đặc biệt.
@@ -593,9 +593,9 @@ Lenin chỉ ra 5 đặc điểm cơ bản của chủ nghĩa đế quốc:
                 author: 'V.I. Lenin',
                 year: '1909',
                 desc: 'Tác phẩm bảo vệ và phát triển triết học Mác.',
-                image: 'https://upload.wikimedia.org/wikipedia/commons/4/4e/Materialism_and_Empirio-criticism.jpg',
+                image: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=1000&auto=format&fit=crop',
                 content: `
-Lenin phê phán các trào lưu triết học duy tâm chủ quan (chủ nghĩa Mach), bảo vệ chủ nghĩa duy vật biện chứng trước những tấn công của "chủ nghĩa xét lại" trong triết học. Đồng thời, ông đưa ra định nghĩa kinh điển về "Vật chất".
+                Lenin phê phán các trào lưu triết học duy tâm chủ quan (chủ nghĩa Mach), bảo vệ chủ nghĩa duy vật biện chứng trước những tấn công của "chủ nghĩa xét lại" trong triết học. Đồng thời, ông đưa ra định nghĩa kinh điển về "Vật chất".
                 `
             }
         ]
@@ -614,9 +614,9 @@ Lenin phê phán các trào lưu triết học duy tâm chủ quan (chủ nghĩa
                 title: 'Karl Marx (C. Mác)', 
                 year: '1818 - 1883',
                 desc: 'Nhà tư tưởng vĩ đại, nhà kinh tế chính trị học, nhà lãnh đạo cách mạng của giai cấp công nhân quốc tế.',
-                image: 'https://upload.wikimedia.org/wikipedia/commons/d/d4/Karl_Marx_001.jpg',
+                image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Karl_Marx_001.jpg/440px-Karl_Marx_001.jpg',
                 content: `
-**Karl Marx** (5/5/1818 – 14/3/1883) là nhà triết học, kinh tế học, sử học, xã hội học, nhà lý luận chính trị, nhà báo và nhà cách mạng người Đức gốc Do Thái.
+                **Karl Marx** (5/5/1818 – 14/3/1883) là nhà triết học, kinh tế học, sử học, xã hội học, nhà lý luận chính trị, nhà báo và nhà cách mạng người Đức gốc Do Thái.
 
 ### Đóng góp chính:
 - Sáng lập Chủ nghĩa duy vật lịch sử.
@@ -630,9 +630,9 @@ Lenin phê phán các trào lưu triết học duy tâm chủ quan (chủ nghĩa
                 title: 'Friedrich Engels (Ph. Ăng-ghen)', 
                 year: '1820 - 1895',
                 desc: 'Người bạn chiến đấu vĩ đại của Marx, đồng sáng lập chủ nghĩa Mác.',
-                image: 'https://upload.wikimedia.org/wikipedia/commons/2/21/Friedrich_Engels_portrait_%28cropped%29.jpg',
+                image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Friedrich_Engels_portrait_%28cropped%29.jpg/440px-Friedrich_Engels_portrait_%28cropped%29.jpg',
                 content: `
-**Friedrich Engels** (28/11/1820 – 5/8/1895) là nhà triết học, nhà khoa học xã hội, nhà báo và nhà cách mạng người Đức.
+                **Friedrich Engels** (28/11/1820 – 5/8/1895) là nhà triết học, nhà khoa học xã hội, nhà báo và nhà cách mạng người Đức.
 
 ### Đóng góp chính:
 - Cùng với Marx xây dựng nên lý luận chủ nghĩa Mác.
@@ -645,9 +645,9 @@ Lenin phê phán các trào lưu triết học duy tâm chủ quan (chủ nghĩa
                 title: 'Vladimir Ilyich Lenin (V.I. Lênin)', 
                 year: '1870 - 1924',
                 desc: 'Lãnh tụ vĩ đại của Cách mạng Tháng Mười Nga, người phát triển chủ nghĩa Mác trong thời đại đế quốc chủ nghĩa.',
-                image: 'https://upload.wikimedia.org/wikipedia/commons/c/c6/Vladimir_Lenin_1920.jpg',
+                image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Vladimir_Lenin_1920.jpg/440px-Vladimir_Lenin_1920.jpg',
                 content: `
-**Vladimir Ilyich Lenin** (22/4/1870 – 21/1/1924) là nhà lý luận chính trị, nhà cách mạng người Nga, lãnh tụ của Đảng Bolshevik và Cách mạng Tháng Mười Nga (1917).
+                **Vladimir Ilyich Lenin** (22/4/1870 – 21/1/1924) là nhà lý luận chính trị, nhà cách mạng người Nga, lãnh tụ của Đảng Bolshevik và Cách mạng Tháng Mười Nga (1917).
 
 ### Đóng góp chính:
 - Phát triển toàn diện chủ nghĩa Mác trong giai đoạn đế quốc chủ nghĩa (Chủ nghĩa Mác - Lênin).
@@ -660,9 +660,9 @@ Lenin phê phán các trào lưu triết học duy tâm chủ quan (chủ nghĩa
                 title: 'Hồ Chí Minh', 
                 year: '1890 - 1969',
                 desc: 'Vị lãnh tụ thiên tài của cách mạng Việt Nam, danh nhân văn hóa thế giới.',
-                image: 'https://upload.wikimedia.org/wikipedia/commons/1/1c/Ho_Chi_Minh_1946.jpg',
+                image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Ho_Chi_Minh_1946.jpg/440px-Ho_Chi_Minh_1946.jpg',
                 content: `
-**Hồ Chí Minh** (19/5/1890 – 2/9/1969) là nhà cách mạng, người sáng lập Đảng Cộng sản Việt Nam, Chủ tịch nước Việt Nam Dân chủ Cộng hòa.
+                **Hồ Chí Minh** (19/5/1890 – 2/9/1969) là nhà cách mạng, người sáng lập Đảng Cộng sản Việt Nam, Chủ tịch nước Việt Nam Dân chủ Cộng hòa.
 
 ### Tư tưởng Hồ Chí Minh:
 - Là sự vận dụng và phát triển sáng tạo chủ nghĩa Mác - Lênin vào điều kiện cụ thể của nước ta.
@@ -675,9 +675,9 @@ Lenin phê phán các trào lưu triết học duy tâm chủ quan (chủ nghĩa
                 title: 'Georg Wilhelm Friedrich Hegel',
                 year: '1770 - 1831',
                 desc: 'Nhà triết học người Đức, người đã xây dựng nên phép biện chứng mà Marx đã kế thừa (hạt nhân hợp lý).',
-                image: 'https://upload.wikimedia.org/wikipedia/commons/0/08/Hegel_portrait_by_Schlesinger_1831.jpg',
+                image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Hegel_portrait_by_Schlesinger_1831.jpg/440px-Hegel_portrait_by_Schlesinger_1831.jpg',
                 content: `
-Hegel là đại biểu xuất sắc nhất của triết học cổ điển Đức. Ông là người đầu tiên trình bày toàn bộ giới tự nhiên, lịch sử và tư duy dưới dạng một quá trình, nghĩa là trong sự vận động, biến đổi và phát triển không ngừng. Tuy nhiên, phép biện chứng của Hegel là phép biện chứng duy tâm.
+                Hegel là đại biểu xuất sắc nhất của triết học cổ điển Đức. Ông là người đầu tiên trình bày toàn bộ giới tự nhiên, lịch sử và tư duy dưới dạng một quá trình, nghĩa là trong sự vận động, biến đổi và phát triển không ngừng. Tuy nhiên, phép biện chứng của Hegel là phép biện chứng duy tâm.
                 `
             },
             {
@@ -685,9 +685,9 @@ Hegel là đại biểu xuất sắc nhất của triết học cổ điển Đ�
                 title: 'Ludwig Feuerbach (Phơ-bách)',
                 year: '1804 - 1872',
                 desc: 'Nhà triết học duy vật nhân bản, cầu nối giữa triết học Hegel và triết học Marx.',
-                image: 'https://upload.wikimedia.org/wikipedia/commons/d/d8/Ludwig_Feuerbach.jpg',
+                image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Ludwig_Feuerbach.jpg/440px-Ludwig_Feuerbach.jpg',
                 content: `
-Feuerbach đã khôi phục lại vị trí của chủ nghĩa duy vật, phê phán chủ nghĩa duy tâm và tôn giáo. Tuy nhiên, chủ nghĩa duy vật của ông còn mang tính siêu hình và duy tâm về lịch sử. Marx và Engels đã kế thừa chủ nghĩa duy vật của Feuerbach để xây dựng nên chủ nghĩa duy vật biện chứng.
+                Feuerbach đã khôi phục lại vị trí của chủ nghĩa duy vật, phê phán chủ nghĩa duy tâm và tôn giáo. Tuy nhiên, chủ nghĩa duy vật của ông còn mang tính siêu hình và duy tâm về lịch sử. Marx và Engels đã kế thừa chủ nghĩa duy vật của Feuerbach để xây dựng nên chủ nghĩa duy vật biện chứng.
                 `
             },
             {
@@ -695,9 +695,9 @@ Feuerbach đã khôi phục lại vị trí của chủ nghĩa duy vật, phê p
                 title: 'Antonio Gramsci',
                 year: '1891 - 1937',
                 desc: 'Nhà lý luận mác-xít người Ý, nổi tiếng với khái niệm "bá quyền văn hóa".',
-                image: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Gramsci_1922.jpg',
+                image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Gramsci_1922.jpg/440px-Gramsci_1922.jpg',
                 content: `
-Gramsci nhấn mạnh vai trò của văn hóa và ý thức hệ trong việc duy trì sự thống trị của giai cấp tư sản (bá quyền). Ông cho rằng giai cấp công nhân cần phải giành được "bá quyền văn hóa" trước khi giành được quyền lực chính trị.
+                Gramsci nhấn mạnh vai trò của văn hóa và ý thức hệ trong việc duy trì sự thống trị của giai cấp tư sản (bá quyền). Ông cho rằng giai cấp công nhân cần phải giành được "bá quyền văn hóa" trước khi giành được quyền lực chính trị.
                 `
             },
             {
@@ -705,9 +705,9 @@ Gramsci nhấn mạnh vai trò của văn hóa và ý thức hệ trong việc d
                 title: 'Rosa Luxemburg',
                 year: '1871 - 1919',
                 desc: 'Nhà lý luận mác-xít người Đức gốc Ba Lan, người chỉ trích chủ nghĩa cải lương.',
-                image: 'https://upload.wikimedia.org/wikipedia/commons/9/97/Rosa_Luxemburg.jpg',
+                image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/Rosa_Luxemburg.jpg/440px-Rosa_Luxemburg.jpg',
                 content: `
-Rosa Luxemburg là một nhà cách mạng kiên định, người đã viết tác phẩm "Tích lũy tư bản" và kiên quyết chống lại chủ nghĩa xét lại trong phong trào công nhân Đức. Bà bị sát hại trong cuộc nổi dậy Spartacus năm 1919.
+                Rosa Luxemburg là một nhà cách mạng kiên định, người đã viết tác phẩm "Tích lũy tư bản" và kiên quyết chống lại chủ nghĩa xét lại trong phong trào công nhân Đức. Bà bị sát hại trong cuộc nổi dậy Spartacus năm 1919.
                 `
             },
             {
@@ -725,9 +725,9 @@ Che Guevara là nhà cách mạng người Argentina, một trong những lãnh 
                 title: 'Võ Nguyên Giáp',
                 year: '1911 - 2013',
                 desc: 'Đại tướng đầu tiên của QĐND Việt Nam, thiên tài quân sự thế giới.',
-                image: 'https://upload.wikimedia.org/wikipedia/commons/4/4d/Vo_Nguyen_Giap_1967.jpg',
+                image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Vo_Nguyen_Giap_1967.jpg/440px-Vo_Nguyen_Giap_1967.jpg',
                 content: `
-Đại tướng Võ Nguyên Giáp là người học trò xuất sắc của Chủ tịch Hồ Chí Minh. Ông nổi tiếng với chiến lược "Chiến tranh nhân dân" và chiến thắng Điện Biên Phủ "lừng lẫy năm châu, chấn động địa cầu", đánh bại thực dân Pháp và sau đó là đế quốc Mỹ.
+                Đại tướng Võ Nguyên Giáp là người học trò xuất sắc của Chủ tịch Hồ Chí Minh. Ông nổi tiếng với chiến lược "Chiến tranh nhân dân" và chiến thắng Điện Biên Phủ "lừng lẫy năm châu, chấn động địa cầu", đánh bại thực dân Pháp và sau đó là đế quốc Mỹ.
                 `
             }
         ]

@@ -220,6 +220,24 @@ async def get_notifications(user=Depends(get_current_user)):
     except Exception as e:
         return []
 
+@router.post("/notifications/{notif_id}/read")
+async def mark_notification_read(notif_id: str, user=Depends(get_current_user)):
+    try:
+        supabase.table("notifications").update({"is_read": True}).eq("id", notif_id).eq("user_id", user.id).execute()
+        return {"message": "Marked as read"}
+    except Exception as e:
+        log_error("Mark read error", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/notifications/read-all")
+async def mark_all_read(user=Depends(get_current_user)):
+    try:
+        supabase.table("notifications").update({"is_read": True}).eq("user_id", user.id).execute()
+        return {"message": "All marked as read"}
+    except Exception as e:
+        log_error("Mark all read error", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
 # --- Search ---
 @router.get("/users/search")
 async def search_users(query: str, user=Depends(get_current_user)):

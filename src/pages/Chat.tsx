@@ -67,9 +67,45 @@ export default function Chat() {
 
   const handleModeSelect = (modeId: string, promptPrefix: string) => {
       setCurrentMode(modeId);
-      if (promptPrefix && !input.startsWith(promptPrefix)) {
-          setInput(promptPrefix);
+      
+      // Clean up old prompts
+      const knownPrompts = MODES.map(m => m.prompt).filter(p => p);
+      let cleanInput = input;
+      
+      // Sort prompts by length desc to match longest first
+      const sortedPrompts = [...knownPrompts].sort((a, b) => b.length - a.length);
+
+      for (const p of sortedPrompts) {
+          // Check if input starts with prompt (ignoring leading whitespace)
+          if (cleanInput.trimStart().startsWith(p.trim())) {
+              // Remove the prompt but be careful about indices since we trimmed for check
+              // A simple way: remove the prompt string if found at start
+              // But p might differ in whitespace from actual input
+              
+              // More robust: Regex escape the prompt and match at start
+              // But simple trim check might be enough:
+              
+              // If input matches prompt exactly at start (relaxed whitespace)
+              // Let's just strip it
+              const pTrim = p.trim();
+              if (cleanInput.trim().startsWith(pTrim)) {
+                  // Find where the content starts (after prompt)
+                   const idx = cleanInput.indexOf(pTrim);
+                   if (idx !== -1) {
+                       cleanInput = cleanInput.slice(idx + pTrim.length);
+                   } else {
+                       // Fallback
+                       cleanInput = cleanInput.replace(pTrim, '');
+                   }
+                   break;
+              }
+          }
       }
+      
+      // Clean up leading whitespace/colons left over
+      cleanInput = cleanInput.replace(/^[\s:]+/, '');
+      
+      setInput(promptPrefix + cleanInput);
   };
 
   const sendMessage = async (messageText: string) => {

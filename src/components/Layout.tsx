@@ -2,12 +2,14 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { useState } from 'react';
 import { Menu } from 'lucide-react';
+import NotificationManager from './NotificationManager';
 
 export default function Layout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <div className="flex h-screen bg-white">
+      <NotificationManager />
       {/* Mobile Menu Button */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-20 bg-white border-b border-gray-100 p-4 flex items-center justify-between">
          <div className="font-serif font-bold text-lg text-soviet-red-700">Triết học M-L</div>

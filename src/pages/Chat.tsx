@@ -100,9 +100,17 @@ export default function Chat() {
       setInput(promptPrefix + cleanInput);
   };
 
-  // ... (inside sendMessage)
   const sendMessage = async (messageText: string) => {
-    // ...
+    if (!messageText.trim() || isLoading) return;
+
+    const userMessage = messageText;
+    setInput('');
+    
+    // Optimistic update
+    const tempUserMsg: Message = { content: userMessage, role: 'user' };
+    setMessages((prev) => [...prev, tempUserMsg]);
+    setIsLoading(true);
+
     try {
       // Enforce system prompt for strict philosophy adherence if not set by user
       let finalSystemPrompt = systemPrompt;
@@ -111,7 +119,7 @@ export default function Chat() {
       }
 
       const res = await api.post('/chat/send', {
-        message: messageText,
+        message: userMessage,
         conversation_id: id || null,
         system_instruction: finalSystemPrompt || undefined
       });
@@ -122,12 +130,16 @@ export default function Chat() {
         navigate(`/chat/${conversation_id}`, { replace: true });
         setMessages((prev) => [...prev, { content: response, role: 'assistant' }]);
       } else {
-        setMessages((prev) => [...prev, { content: response, role: 'assistant' }]);
+           setMessages((prev) => [
+            ...prev,
+            { content: response, role: 'assistant' }
+          ]);
       }
       
     } catch (error) {
       console.error('Failed to send message', error);
-      setMessages(prev => [...prev, { content: "Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại.", role: 'assistant' }]);
+      // toast.error("Không thể gửi tin nhắn. Vui lòng thử lại.");
+      setMessages(prev => [...prev, { content: "Xin lỗi, hệ thống đang bận hoặc có lỗi xảy ra. Vui lòng thử lại sau.", role: 'assistant' }]);
     } finally {
       setIsLoading(false);
     }
@@ -140,58 +152,47 @@ export default function Chat() {
 
   return (
     <div className="flex h-full bg-white dark:bg-dark-bg relative overflow-hidden font-sans">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-hero-pattern opacity-5 pointer-events-none z-0 dark:opacity-[0.02]"></div>
+      {/* Background Pattern - Optimized opacity */}
+      <div className="absolute inset-0 bg-hero-pattern opacity-[0.03] pointer-events-none z-0 dark:opacity-[0.02]"></div>
 
-      <div className="flex-1 flex flex-col h-full z-10 w-full bg-white/90 dark:bg-dark-bg/90 backdrop-blur-sm">
+      {/* Main Container - Removed backdrop-blur for performance */}
+      <div className="flex-1 flex flex-col h-full z-10 w-full bg-white/50 dark:bg-dark-bg/50">
         
         {/* Settings Modal */}
-        <AnimatePresence>
-            {showSettings && (
-                <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className="absolute top-4 right-4 z-50 bg-white dark:bg-dark-surface p-4 rounded-xl shadow-xl border border-gray-200 dark:border-dark-border w-80"
-                >
-                    <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-2 flex items-center">
-                        <PenTool className="w-4 h-4 mr-2 text-soviet-red-600 dark:text-soviet-red-400" />
-                        Cài đặt tính cách AI
-                    </h3>
-                    <textarea
-                        value={systemPrompt}
-                        onChange={(e) => setSystemPrompt(e.target.value)}
-                        placeholder="Ví dụ: Bạn là một nhà triết học khắc kỷ..."
-                        className="w-full h-24 p-2 text-sm border border-gray-300 dark:border-dark-border rounded-lg mb-2 focus:ring-2 focus:ring-soviet-red-500 focus:outline-none bg-white dark:bg-dark-bg text-gray-900 dark:text-gray-200"
-                    />
-                    <div className="flex justify-end space-x-2">
-                         <button 
-                            onClick={() => setSystemPrompt('')}
-                            className="text-xs text-gray-500 dark:text-gray-400 hover:text-red-500 px-2 py-1"
-                         >
-                            Xóa
-                         </button>
-                         <button 
-                            onClick={() => setShowSettings(false)}
-                            className="text-xs bg-soviet-red-700 dark:bg-soviet-red-800 text-white px-3 py-1 rounded-md hover:bg-soviet-red-800 dark:hover:bg-soviet-red-700"
-                         >
-                            Đóng
-                         </button>
-                    </div>
-                </motion.div>
-            )}
-        </AnimatePresence>
+        {showSettings && (
+            <div className="absolute top-4 right-4 z-50 bg-white dark:bg-dark-surface p-4 rounded-xl shadow-xl border border-gray-200 dark:border-dark-border w-80 animate-in fade-in slide-in-from-top-2">
+                <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-2 flex items-center">
+                    <PenTool className="w-4 h-4 mr-2 text-soviet-red-600 dark:text-soviet-red-400" />
+                    Cài đặt tính cách AI
+                </h3>
+                <textarea
+                    value={systemPrompt}
+                    onChange={(e) => setSystemPrompt(e.target.value)}
+                    placeholder="Ví dụ: Bạn là một nhà triết học khắc kỷ..."
+                    className="w-full h-24 p-2 text-sm border border-gray-300 dark:border-dark-border rounded-lg mb-2 focus:ring-2 focus:ring-soviet-red-500 focus:outline-none bg-white dark:bg-dark-bg text-gray-900 dark:text-gray-200"
+                />
+                <div className="flex justify-end space-x-2">
+                        <button 
+                        onClick={() => setSystemPrompt('')}
+                        className="text-xs text-gray-500 dark:text-gray-400 hover:text-red-500 px-2 py-1"
+                        >
+                        Xóa
+                        </button>
+                        <button 
+                        onClick={() => setShowSettings(false)}
+                        className="text-xs bg-soviet-red-700 dark:bg-soviet-red-800 text-white px-3 py-1 rounded-md hover:bg-soviet-red-800 dark:hover:bg-soviet-red-700"
+                        >
+                        Đóng
+                        </button>
+                </div>
+            </div>
+        )}
 
         {/* Messages Area */}
         <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 scroll-smooth custom-scrollbar w-full px-4 md:px-12 lg:px-20 mx-auto">
           {messages.length === 0 ? (
-            <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="flex flex-col items-center justify-center h-full text-center"
-            >
-              <div className="bg-gradient-to-br from-soviet-red-700 to-soviet-red-900 p-6 rounded-full shadow-2xl mb-8 transform hover:scale-105 transition-transform duration-300 ring-4 ring-soviet-red-100 dark:ring-soviet-red-900/30">
+            <div className="flex flex-col items-center justify-center h-full text-center animate-in fade-in zoom-in duration-500">
+              <div className="bg-gradient-to-br from-soviet-red-700 to-soviet-red-900 p-6 rounded-full shadow-2xl mb-8 ring-4 ring-soviet-red-100 dark:ring-soviet-red-900/30 hover:scale-105 transition-transform duration-300">
                 <BookOpen className="h-16 w-16 text-soviet-gold-400" />
               </div>
               <h1 className="text-4xl font-serif font-bold text-gray-900 dark:text-white mb-4 tracking-tight">
@@ -211,34 +212,26 @@ export default function Chat() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-12 w-full max-w-2xl px-4">
                   {SUGGESTED_QUESTIONS.map((q, idx) => (
-                      <motion.button
+                      <button
                         key={idx}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.1 }}
                         onClick={() => sendMessage(q)}
-                        className="flex items-center p-4 bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl shadow-sm hover:border-soviet-red-200 dark:hover:border-soviet-red-800 hover:shadow-md transition-all text-left group"
+                        className="flex items-center p-4 bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl shadow-sm hover:border-soviet-red-200 dark:hover:border-soviet-red-800 hover:shadow-md transition-all text-left group hover:scale-[1.02]"
                       >
                           <div className="bg-soviet-red-50 dark:bg-soviet-red-900/20 p-2 rounded-lg mr-4 group-hover:bg-soviet-red-100 dark:group-hover:bg-soviet-red-900/40 transition-colors">
                             <Star className="h-4 w-4 text-soviet-red-600 dark:text-soviet-red-400" />
                           </div>
                           <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-soviet-red-800 dark:group-hover:text-soviet-red-300">{q}</span>
-                      </motion.button>
+                      </button>
                   ))}
               </div>
-            </motion.div>
+            </div>
           ) : (
-            <AnimatePresence initial={false}>
+            <>
             {messages.map((msg, idx) => (
-              <motion.div
+              <div
                 key={idx}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
                 className={clsx(
-                  'flex w-full space-x-4',
+                  'flex w-full space-x-4 animate-in fade-in slide-in-from-bottom-2 duration-300',
                   msg.role === 'user' ? 'justify-end' : 'justify-start'
                 )}
               >
@@ -280,9 +273,9 @@ export default function Chat() {
                         </div>
                     </div>
                 )}
-              </motion.div>
+              </div>
             ))}
-            </AnimatePresence>
+            </>
           )}
           
           {isLoading && (

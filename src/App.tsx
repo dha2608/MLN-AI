@@ -48,8 +48,8 @@ export default function App() {
 
   return (
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+      <Toaster position="top-right" />
       <Router>
-        <Toaster position="top-right" />
         <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
